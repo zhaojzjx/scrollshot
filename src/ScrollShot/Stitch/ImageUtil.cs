@@ -5,22 +5,10 @@ using System.Windows.Media.Imaging;
 namespace ScrollShot.Stitch
 {
     /// <summary>
-    /// 图像工具：帧哈希（用于"连续两帧完全一致即到底"的停止判定 FR-16）、PNG 落盘。
+    /// 图像工具：帧差判定（判稳 / 判到底）与按格式落盘。
     /// </summary>
     internal static class ImageUtil
     {
-        public static long Hash(BitmapSource b)
-        {
-            int stride = b.PixelWidth * 4;
-            var buf = new byte[stride * b.PixelHeight];
-            b.CopyPixels(buf, stride, 0);
-            // FNV-1a 采样哈希：每隔若干字节取一个，足够快速区分"是否到底"
-            long h = 1469598103934665603L;
-            for (int i = 0; i < buf.Length; i += 89)
-                h = (h * 1099511628211L) ^ buf[i];
-            return h;
-        }
-
         /// <summary>
         /// 两帧的差异像素比例（0 = 完全一致，1 = 全不同）。
         ///

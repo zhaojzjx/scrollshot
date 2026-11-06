@@ -6,12 +6,14 @@ using ScrollShot;
 namespace ScrollShot.Scroll
 {
     /// <summary>
-    /// M1 滚动控制：
-    ///  - WindowAt / Focus：定位并把光标所在的选区下方窗口置前；
-    ///  - SendCtrlHome：先滚到顶部（发送 Ctrl+Home）；
-    ///  - WheelPost：用 PostMessage 直接向目标窗口投递滚轮事件，
-    ///    不依赖光标位置，也顺带规避"光标出现在截图中"（FR-14，M1 近似实现）。
-    /// 真正的 SendInput 前台方案与 PageDown 模式在 M2 完善。
+    /// 滚动控制：
+    ///  - WindowAt / Focus：定位光标下的顶层窗口并置前，滚轮与按键才能送到它身上；
+    ///  - SendCtrlHome：先把内容滚回顶部（FR-10）；
+    ///  - WheelAt：向选区中心发送**真实**滚轮事件（FR-12）；
+    ///  - PageDown：滚轮无效的应用改用 PageDown 翻页（FR-12）。
+    ///
+    /// 这里刻意不用 PostMessage 投 WM_MOUSEWHEEL：现代应用（记事本、UWP、Chromium/Electron）
+    /// 普遍只响应真实输入事件，投递的消息会被直接忽略，表现为"采集只出 1 张"。
     /// </summary>
     internal static class ScrollController
     {
@@ -88,14 +90,6 @@ namespace ScrollShot.Scroll
                 }
             };
             NativeMethods.SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<NativeMethods.INPUT>());
-        }
-
-        public static void WheelPost(IntPtr hwnd, int xDev, int yDev, int delta)
-        {
-            if (hwnd == IntPtr.Zero) return;
-            IntPtr wp = (IntPtr)(delta << 16);
-            IntPtr lp = (IntPtr)((yDev << 16) | (xDev & 0xFFFF));
-            NativeMethods.PostMessage(hwnd, NativeMethods.WM_MOUSEWHEEL, wp, lp);
         }
 
         /// <summary>PageDown 模式：发送 PageDown 键滚动一屏（FR-12，兼容滚轮无效的应用）。</summary>

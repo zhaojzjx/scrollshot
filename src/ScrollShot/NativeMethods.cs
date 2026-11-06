@@ -55,9 +55,6 @@ namespace ScrollShot
         public static extern bool IsIconic(IntPtr hWnd);
 
         [DllImport("user32.dll")]
-        public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
-
-        [DllImport("user32.dll")]
         public static extern uint SendInput(uint nInputs, [In] INPUT[] pInputs, int cbSize);
 
         // ---- GDI / BitBlt ----
@@ -99,7 +96,6 @@ namespace ScrollShot
         public const uint MOD_SHIFT = 0x0004;
         public const uint MOD_WIN = 0x0008;
         public const uint WM_HOTKEY = 0x0312;
-        public const uint WM_MOUSEWHEEL = 0x020A;
         public const int SRCCOPY = 0x00CC0020;
         public const int SW_RESTORE = 9;
         public const int SW_SHOW = 5;

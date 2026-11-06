@@ -72,8 +72,11 @@ namespace ScrollShot
             var vm = new VolumeManager(w, cfg, cfg.OutputDir, baseName);
 
             // 隐藏光标：把光标移到选区之外，确保截图中不含鼠标指针（FR-14）
-            int cursorX = (x + w + 2 < SystemParameters.VirtualScreenWidth ? x + w + 2 : x - 2);
-            int cursorY = y;
+            int virtL = (int)Math.Round(SystemParameters.VirtualScreenLeft * scale);
+            int virtT = (int)Math.Round(SystemParameters.VirtualScreenTop * scale);
+            int virtW = (int)Math.Round(SystemParameters.VirtualScreenWidth * scale);
+            int virtH = (int)Math.Round(SystemParameters.VirtualScreenHeight * scale);
+            var (cursorX, cursorY) = CursorRestSpot(x, y, w, h, virtL, virtT, virtW, virtH);
             NativeMethods.SetCursorPos(cursorX, cursorY);
             NativeMethods.ShowCursor(false);
 
@@ -194,7 +197,9 @@ namespace ScrollShot
                         {
                             shift = Math.Max(1, Math.Min(h - 8, stepPx));
                         }
-                        if (notches > 1) { notches = Math.Max(1, notches / 2); _recentShifts.Clear(); }
+                        if (notches > 1) notches = Math.Max(1, notches / 2);
+                        // 注意：这里不清 _recentShifts。历史位移恰恰是下一次低置信度时唯一可用的参照，
+                        // 清掉等于"遇到异常就忘掉正常值"，下帧只能退回配置步长瞎猜。
                     }
                     else if (_recentShifts.Count >= 3 && conf < 0.95)
                     {
@@ -214,9 +219,9 @@ namespace ScrollShot
                     // 位移一旦超过 0.62h，重叠不足 300px，周期性内容就分不清"滚了一屏"还是"滚了一个重复块"，
                     // 这是之前出现叠字 / 局部重复的直接原因，所以这里宁可多滚几次也要保住重叠。
                     double ratio = h > 0 ? (double)shift / h : 0;
-                    if (ratio > 0.62) { notches = Math.Max(1, notches - 2); _recentShifts.Clear(); }
-                    else if (ratio > 0.55) { notches = Math.Max(1, notches - 1); _recentShifts.Clear(); }
-                    else if (ratio < 0.30) { notches = Math.Min(24, notches + 1); _recentShifts.Clear(); }
+                    if (ratio > 0.62) notches = Math.Max(1, notches - 2);
+                    else if (ratio > 0.55) notches = Math.Max(1, notches - 1);
+                    else if (ratio < 0.30) notches = Math.Min(24, notches + 1);
 
                     _recentShifts.Add(shift);
                     if (_recentShifts.Count > 3) _recentShifts.RemoveAt(0);
@@ -246,6 +251,37 @@ namespace ScrollShot
             }
 
             return res;
+        }
+
+        /// <summary>
+        /// 选一个「在虚拟屏内、且在选区之外」的光标停放点（FR-14）。
+        ///
+        /// 旧实现直接拿设备像素坐标与 SystemParameters.VirtualScreenWidth 比较，而后者是 DIP。
+        /// 200% 缩放下 1440 DIP 对应 2880 设备像素，判据 `x + w + 2 &lt; 1440` 在宽选区上恒为假，
+        /// 于是走到 x - 2；若选区贴着左边缘（x = 0）就是一个负坐标，
+        /// SetCursorPos 会把它夹回 (0, y) —— 正好落在选区里，鼠标指针被截进图。
+        ///
+        /// 现在按「右 → 左 → 下 → 上」的优先级找落点，全部用设备像素比较，
+        /// 只有选区铺满整个虚拟屏时才退到右下角（此时无处可躲）。
+        /// </summary>
+        private static (int X, int Y) CursorRestSpot(int x, int y, int w, int h,
+            int virtL, int virtT, int virtW, int virtH)
+        {
+            const int pad = 2;
+
+            int right = x + w + pad;
+            if (right <= virtL + virtW) return (right, y);
+
+            int left = x - pad;
+            if (left >= virtL) return (left, y);
+
+            int bottom = y + h + pad;
+            if (bottom <= virtT + virtH) return (x, bottom);
+
+            int top = y - pad;
+            if (top >= virtT) return (x, top);
+
+            return (virtL + virtW - 1, virtT + virtH - 1);
         }
 
         /// <summary>截屏前确保光标在选区之外，避免指针入图（FR-14）。</summary>
