@@ -1,0 +1,20 @@
+<Window x:Class="ScrollShot.CountdownWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True" Background="#00000000"
+        Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize"
+        Width="320" Height="200" WindowStartupLocation="CenterScreen">
+    <Grid>
+        <Border Background="#17181A" Opacity="0.86" CornerRadius="10"
+                HorizontalAlignment="Center" VerticalAlignment="Center" Padding="28,18">
+            <StackPanel HorizontalAlignment="Center">
+                <TextBlock x:Name="Num" Text="3" FontSize="64" FontWeight="Bold"
+                           Foreground="{StaticResource TextMain}" HorizontalAlignment="Center"/>
+                <TextBlock Text="即将开始采集，请勿移动窗口" Foreground="{StaticResource TextSub}"
+                           FontSize="12" HorizontalAlignment="Center" Margin="0,4,0,10"/>
+                <Button x:Name="SkipBtn" Content="跳过" Width="96" Style="{StaticResource BtnPrimary}"
+                        Click="SkipBtn_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

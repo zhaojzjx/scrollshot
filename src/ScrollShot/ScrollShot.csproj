@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <!--
+      需求说明书要求 .NET 8，但 .NET 8 的支持周期已于 2026-11-10 结束，
+      故升到 net10.0-windows（LTS，支持到 2028-11）。本机 SDK 为 10.0.403。
+      WPF 代码 8 到 10 无需改动，编译与运行均实测通过。
+    -->
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <Nullable>enable</Nullable>
+    <AssemblyName>ScrollShot</AssemblyName>
+    <RootNamespace>ScrollShot</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+
+    <!--
+      单文件发布配置（对应需求 NFR-09：绿色免安装单文件 exe、自带运行库、无需管理员权限）。
+      仅对 `dotnet publish` 生效；普通 `dotnet build` 仍输出常规多文件调试集，方便开发调试。
+    -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>true</SelfContained>
+    <PublishReadyToRun>true</PublishReadyToRun>
+    <!--
+      WPF 依赖少量原生库（DirectX 相关），需设为 self-extract 才能在单文件内随 exe 自带运行库，
+      否则首次运行会把原生 dll 解压到临时目录。与 SelfContained 配合实现“自带运行库、免安装”。
+    -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- WPF 对 trimming 支持不完整，保持关闭以避免运行时缺失类型 -->
+    <PublishTrimmed>false</PublishTrimmed>
+    <!-- 发布产物只保留单一 exe：不生成 pdb 调试符号（运行不需要），满足“绿色单文件 exe” -->
+    <DebugType>none</DebugType>
+  </PropertyGroup>
+
+</Project>

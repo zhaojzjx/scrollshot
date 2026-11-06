@@ -1,0 +1,17 @@
+<Application x:Class="ScrollShot.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- 不设 StartupUri：主窗口由 App.OnStartup 显式创建（含单实例判断与托盘接线） -->
+    <Application.Resources>
+        <ResourceDictionary>
+            <!--
+                全部深色主题（调色板 + 控件模板）集中在 Theme.xaml。
+                控件若要拿到自定义深色外观，必须走这里的隐式样式；
+                只设 Background/Foreground 会被系统浅色模板盖掉，出现白底白字。
+            -->
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Theme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

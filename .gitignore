@@ -1,0 +1,29 @@
+# 构建产物
+[Bb]in/
+[Oo]bj/
+[Pp]ublish/
+*.dll
+*.exe
+*.pdb
+*.lib
+*.exp
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+.vscode/
+*.user
+*.suo
+*.userprefs
+
+# 本机工作区数据（含个人笔记，不入库）
+.workbuddy/
+
+# Python 缓存
+__pycache__/
+*.pyc
+
+# 系统文件
+Thumbs.db
+.DS_Store
+desktop.ini

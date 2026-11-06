@@ -1,0 +1,45 @@
+<Window x:Class="ScrollShot.SelectionOverlay"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None" AllowsTransparency="True"
+        Background="#01000000" Topmost="True" ShowInTaskbar="False"
+        ResizeMode="NoResize" KeyDown="OnKeyDown" Cursor="Cross">
+    <!--
+        关键点（曾导致"点击后卡死"）：
+        1) Canvas 必须给 Background（哪怕是 Transparent）：WPF 中 Background=null 的元素不参与命中测试，
+           鼠标事件会落到窗口上，Canvas 的 OnDown/OnMove/OnUp 永远不触发 → 框选无反应。
+        2) 遮罩改用 Path + CombinedGeometry(Exclude)：几何是绝对坐标，不受 Canvas "不给子元素尺寸约束"影响。
+           先前用未设宽高的 Rectangle 放在 Canvas 里，尺寸为 0，遮罩完全不可见。
+        3) 松开鼠标即确认并开始采集，不再需要二次点"确认"。
+    -->
+    <Canvas x:Name="RootCanvas" Background="Transparent"
+            MouseLeftButtonDown="OnDown" MouseMove="OnMove" MouseLeftButtonUp="OnUp"
+            MouseRightButtonUp="OnRightUp">
+
+        <!-- 遮罩：整屏 55% 黑，选区内挖洞保持 100% 透明（UI-12） -->
+        <Path x:Name="Shade" Fill="#000000" Opacity="0.55">
+            <Path.Data>
+                <CombinedGeometry x:Name="ShadeGeo" GeometryCombineMode="Exclude">
+                    <CombinedGeometry.Geometry1>
+                        <RectangleGeometry x:Name="FullGeo" Rect="0,0,1,1"/>
+                    </CombinedGeometry.Geometry1>
+                    <CombinedGeometry.Geometry2>
+                        <RectangleGeometry x:Name="HoleGeo" Rect="0,0,0,0"/>
+                    </CombinedGeometry.Geometry2>
+                </CombinedGeometry>
+            </Path.Data>
+        </Path>
+
+        <!-- 选区边框：1px 主色 + 外侧深色描边，确保任意背景上都可见（UI-12a） -->
+        <Rectangle x:Name="Sel" Stroke="#6BA1FF" StrokeThickness="2" Fill="Transparent" Visibility="Collapsed"/>
+
+        <Border x:Name="Label" Background="#17181A" Opacity="0.9" CornerRadius="4" Padding="4,2" Visibility="Collapsed">
+            <TextBlock x:Name="LabelText" Foreground="#DFE1E5" FontSize="12"/>
+        </Border>
+
+        <Border Background="#17181A" Opacity="0.85" CornerRadius="4" Padding="8,4" Canvas.Left="12" Canvas.Top="12">
+            <TextBlock x:Name="Tip" Text="拖动鼠标框选要滚动截图的内容区域（避开标题栏与状态栏） · 松开即开始截图 · 按 Esc 或单击右键取消"
+                       Foreground="#DFE1E5" FontSize="12"/>
+        </Border>
+    </Canvas>
+</Window>
