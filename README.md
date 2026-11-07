@@ -30,7 +30,24 @@ Windows 上的滚动截图工具：框选任意可滚动区域，自动滚动、
 - 构建需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
 - 运行不需要任何运行时（发布产物为 self-contained 单文件）
 
-## 快速开始
+## 下载
+
+最新稳定版 **[ScrollShot v1.0.0](https://github.com/zhaoronghui/scrollshot/releases/latest)**（Windows 10 / 11，x64）。
+
+| 文件 | 大小 | 说明 |
+|---|---|---|
+| `ScrollShot-v1.0.0-win-x64.zip` | 约 61 MB | Releases 里的附件 |
+| └ `ScrollShot.exe` | 约 149 MB | 解压后得到，自带 .NET 10 运行时 |
+
+下载 zip → 解压 → 双击 exe 即用，**不用安装、不用管理员权限、不用联网**。拷到 U 盘带进内网机器也能跑。
+
+zip 的 SHA-256：`b6d7c4d9f40d91fdec9078f3ec86b1cd3cffc9aa79ce90e3d478069ad5d658c7`
+
+> Releases 页面自动附带的 `Source code (zip)` 是源码包，不含编译产物；要直接用程序请下载上面那个附件。
+
+## 从源码构建
+
+只想用现成程序的话，下载上面的 zip 即可。下面是自己编译（需要 .NET 10 SDK）：
 
 ```bash
 git clone https://github.com/zhaoronghui/scrollshot.git
@@ -46,7 +63,7 @@ dotnet publish -c Release
 ## 使用
 
 1. 启动 `ScrollShot.exe`，主窗口出现，托盘出现图标
-2. 按 `Ctrl+Alt+S`（或点「开始截图」）
+2. 按 `Ctrl+Alt+S`（或点主窗口「开始滚动截图」、托盘右键「开始截图」）
 3. 在屏幕上拖拽框选要截取的区域
 4. **松开鼠标即开始采集**，右上角出现胶囊控制条
 5. 采集结束后自动弹出预览窗，图片已存到输出目录
@@ -82,7 +99,7 @@ dotnet publish -c Release
 
 新帧底边 = 上一帧底边 + 位移量 `s`。这样当 `s` 小于帧高时，新帧顶部会落在上一帧内部，重叠区被后帧覆盖，卷内既不会重复也不会空洞。按顶边摆放（新帧顶边 = 上帧底边）每帧会平白多出 `帧高 - s` 行重复内容。
 
-详细推导与踩坑记录见 [docs/tech-notes.md](docs/tech-notes.md)；面向使用者的介绍与推荐见 [docs/article.md](docs/article.md)。
+详细推导与踩坑记录见 [docs/tech-notes.md](docs/tech-notes.md)。
 
 ## 项目结构
 
@@ -106,8 +123,21 @@ scrollshot/
 │   ├── Settings/Config.cs       配置持久化
 │   └── NativeMethods.cs         P/Invoke 声明
 ├── tools/verify_stitch.py       卷间衔接自检脚本
-└── docs/                        使用介绍、技术复盘、演示脚本与配图
+└── docs/
+    ├── article.md               使用介绍与推荐（公众号稿）
+    ├── tech-notes.md            技术复盘
+    ├── video-script.md          演示视频分镜与旁白
+    └── images/architecture.svg  采集流程示意图
 ```
+
+## 文档
+
+| 文档 | 面向 | 内容 |
+|---|---|---|
+| [docs/article.md](docs/article.md) | 使用者 | 场景、下载、三步操作、设置、已知限制与推荐理由 |
+| [docs/tech-notes.md](docs/tech-notes.md) | 开发者 | 技术复盘：判稳、位移匹配、底边对齐、分卷切点的四次踩坑 |
+| [docs/video-script.md](docs/video-script.md) | 内容制作 | 演示视频分镜表、旁白全文与拍摄清单 |
+| [docs/images/architecture.svg](docs/images/architecture.svg) | — | 采集流程示意（本页顶部引用） |
 
 ## 主要配置项
 

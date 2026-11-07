@@ -38,7 +38,13 @@
 
 **方式一：直接拿编译好的单文件**
 
-去仓库 Releases 页面下载 `ScrollShot-v1.0.0-win-x64.zip`（约 61 MB），解压出 `ScrollShot.exe`（约 149 MB，自带 .NET 运行时）。拷到 U 盘带进内网机器，双击就能跑，不用安装、不用管理员权限、不用联网。
+当前版本 **v1.0.0**，已经发布，直接下载：
+
+https://github.com/zhaoronghui/scrollshot/releases/latest
+
+找到附件 `ScrollShot-v1.0.0-win-x64.zip`（约 61 MB），解压出 `ScrollShot.exe`（约 149 MB，自带 .NET 10 运行时）。拷到 U 盘带进内网机器，双击就能跑，不用安装、不用管理员权限、不用联网。
+
+> 带文件进内网，顺手核一下完整性：zip 的 SHA-256 是 `b6d7c4d9f40d91fdec9078f3ec86b1cd3cffc9aa79ce90e3d478069ad5d658c7`。Releases 页面自动附带的 `Source code (zip)` 只是源码包，别下错了。
 
 **方式二：自己编译**（外网机器上，装了 .NET 10 SDK 就行）
 
@@ -117,13 +123,13 @@ cd scrollshot/src/ScrollShot && dotnet publish -c Release
 
 给 AI 时按顺序把几张图一起传、并在提示里说明"这是同一份代码的连续第 1/2/3 段"，它就能当一份完整材料读。
 
-准不准不用信我：仓库里带了 `tools/verify_stitch.py`，采完跑一下，卷间衔接的平均灰度差应该是 `0.000`（逐像素一致）。不是 0 就说明接断了。
+准不准不用信我：仓库里带了 `tools/verify_stitch.py`，采完跑一下，卷间衔接的平均灰度差应该是 `0.000`（逐像素一致），不是 0 就说明接断了。依赖安装和命令见仓库 README 的「自检」一节。
 
 ---
 
 ## 八、几个常用设置
 
-设置窗口分「常规 / 采集 / 拼接 / 输出 / 高级」五组，改完即时生效，不用重启。多数人默认值就够，只列几个真会用到的：
+设置窗口分「常规 / 采集 / 拼接 / 输出 / 高级」五组，改动即时保存、不用重启程序（只有快捷键要额外点一下「重新注册快捷键」）。多数人默认值就够，只列几个真会用到的：
 
 | 想解决什么 | 改哪里 | 建议 |
 |---|---|---|
@@ -165,7 +171,9 @@ cd scrollshot/src/ScrollShot && dotnet publish -c Release
 
 ---
 
-**仓库（含下载与技术复盘）**：https://github.com/zhaoronghui/scrollshot
-**协议**：MIT，免费可商用。
+- **下载**：https://github.com/zhaoronghui/scrollshot/releases/latest
+- **仓库**：https://github.com/zhaoronghui/scrollshot
+- **技术复盘**：仓库内 `docs/tech-notes.md`
+- **协议**：MIT，免费可商用。
 
 *工具与本文均由 AI 辅助完成，从提需求到能出图约一个下午。如果对你有帮助，欢迎转发，或去仓库点个 star。*
