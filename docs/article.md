@@ -38,7 +38,7 @@
 
 **方式一：直接拿编译好的单文件**
 
-去仓库 Releases 页面下载 `ScrollShot.exe`（约 149 MB，自带 .NET 运行时）。下载完是**一个文件**，拷到 U 盘带进内网机器，双击就能跑，不用安装、不用管理员权限、不用联网。
+去仓库 Releases 页面下载 `ScrollShot-v1.0.0-win-x64.zip`（约 61 MB），解压出 `ScrollShot.exe`（约 149 MB，自带 .NET 运行时）。拷到 U 盘带进内网机器，双击就能跑，不用安装、不用管理员权限、不用联网。
 
 **方式二：自己编译**（外网机器上，装了 .NET 10 SDK 就行）
 
@@ -49,7 +49,7 @@ cd scrollshot/src/ScrollShot && dotnet publish -c Release
 
 产物在 `bin/Release/net10.0-windows/win-x64/publish/ScrollShot.exe`。
 
-> 【配图建议：Releases 页面截图，圈出 exe 附件】
+> 【配图建议：Releases 页面截图，圈出 zip 附件】
 
 ---
 
@@ -165,7 +165,7 @@ cd scrollshot/src/ScrollShot && dotnet publish -c Release
 
 ---
 
-**仓库（含单文件下载与技术复盘）**：https://github.com/zhaoronghui/scrollshot
+**仓库（含下载与技术复盘）**：https://github.com/zhaoronghui/scrollshot
 **协议**：MIT，免费可商用。
 
 *工具与本文均由 AI 辅助完成，从提需求到能出图约一个下午。如果对你有帮助，欢迎转发，或去仓库点个 star。*
