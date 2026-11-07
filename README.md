@@ -82,7 +82,7 @@ dotnet publish -c Release
 
 新帧底边 = 上一帧底边 + 位移量 `s`。这样当 `s` 小于帧高时，新帧顶部会落在上一帧内部，重叠区被后帧覆盖，卷内既不会重复也不会空洞。按顶边摆放（新帧顶边 = 上帧底边）每帧会平白多出 `帧高 - s` 行重复内容。
 
-详细推导和踩坑记录见 [docs/article.md](docs/article.md)。
+详细推导与踩坑记录见 [docs/tech-notes.md](docs/tech-notes.md)；面向使用者的介绍与推荐见 [docs/article.md](docs/article.md)。
 
 ## 项目结构
 
@@ -106,7 +106,7 @@ scrollshot/
 │   ├── Settings/Config.cs       配置持久化
 │   └── NativeMethods.cs         P/Invoke 声明
 ├── tools/verify_stitch.py       卷间衔接自检脚本
-└── docs/                        技术文章、演示脚本与配图
+└── docs/                        使用介绍、技术复盘、演示脚本与配图
 ```
 
 ## 主要配置项
