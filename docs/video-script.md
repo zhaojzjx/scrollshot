@@ -6,6 +6,9 @@
 
 > 说明：AI 生成画面无法呈现真实软件界面，因此片中**只有概念示意段用 AI**，
 > 功能操作段必须录屏。两者靠字幕与旁白串联。
+>
+> 全片口径：工具在**外网用 AI 辅助开发**、代码公开；用途是**截内网代码给外网 AI 看**。
+> 不要说成「内网里开发的工具」，也不要暗示长期打磨——从提需求到出图约一个下午。
 
 ---
 
@@ -13,7 +16,7 @@
 
 | # | 时间 | 画面内容 | 制作方式 | 字幕 |
 |---|---|---|---|---|
-| 1 | 0:00–0:05 | 一页长文档不断向下延伸，滚动条缩成一个点 | AI 生成 | 有些内容，一张截图装不下 |
+| 1 | 0:00–0:05 | 一页代码文件不断向下延伸，滚动条缩成一个点 | AI 生成 | 内网的代码，一张截图装不下 |
 | 2 | 0:05–0:12 | 全屏录制：普通截图只能截到一屏，下面是空白 | 录屏 | 普通截图，只能截到一屏 |
 | 3 | 0:12–0:20 | 软件启动 → 按 Ctrl+Alt+S → 框选区域 | 录屏 | 框选任意区域，松开鼠标 |
 | 4 | 0:20–0:28 | 画面自动滚动，右上角胶囊显示"第 N 张 / 已拼接 XXXX px" | 录屏 | 自动滚动、自动拼接 |
@@ -33,13 +36,13 @@
 **AI prompt**
 
 ```
-A minimalist 3D scene: an impossibly tall document page extending upward into darkness,
+A minimalist 3D scene: an impossibly tall source-code file extending upward into darkness,
 covered in abstract rows of luminous gray lines. The camera slowly tilts up while the page
 keeps growing. On the right edge a scrollbar thumb shrinks into a tiny glowing dot.
 Cool blue-gray palette, soft depth of field, no text, cinematic, smooth slow motion.
 ```
 
-**旁白**：有些内容，一张截图装不下。
+**旁白**：内网机器上的代码，文本带不出来，想给外网的 AI 看，只能截图。可有些代码，一张截图装不下。
 
 ---
 
@@ -183,7 +186,7 @@ OK vol2 -> vol3   平均灰度差 = 0.000
 
 ## 旁白全文（可直接配音）
 
-> 有些内容，一张截图装不下。
+> 内网机器上的代码，文本带不出来，想给外网的 AI 看，只能截图。可有些代码，一张截图装不下。
 >
 > 滚动截图要解决的，是把连续多屏的内容拼成一张完整长图。
 >
