@@ -9,7 +9,7 @@ namespace ScrollShot.Capture
 {
     /// <summary>
     /// 截屏提供器接口：输入设备像素矩形，返回 Bgr32 的 BitmapSource。
-    /// M2 先用 BitBlt；Windows.Graphics.Capture（WGC）作为 M2.5 提供器接入此接口。
+    /// 目前使用 BitBlt；Windows.Graphics.Capture（WGC）预留为另一种实现，尚未实装。
     /// </summary>
     internal interface ICaptureProvider
     {

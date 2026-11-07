@@ -11,8 +11,8 @@ using ScrollShot.Stitch;
 namespace ScrollShot
 {
     /// <summary>
-    /// M3 采集编排：框选(DIP) → DPI 换算 → 滚顶 → 稳定帧检测 → 重叠特征匹配 → 流式封板（分卷）→ 落盘。
-    /// 分卷封板 / 切点 / 阈值 / 多卷命名 由 VolumeManager 负责（FR-16a/16b/16/30/33）。
+    /// 采集编排：框选(DIP) → DPI 换算 → 滚顶 → 稳定帧检测 → 重叠特征匹配 → 流式封板（分卷）→ 落盘。
+    /// 分卷封板 / 切点 / 阈值 / 多卷命名 由 VolumeManager 负责。
     /// </summary>
     internal class CaptureSession
     {
@@ -44,7 +44,7 @@ namespace ScrollShot
             var res = new Result();
 
             // 遮罩窗口刚关闭（松开鼠标即开始采集），稍等一帧让桌面重绘完成，
-            // 避免首帧截到尚未消失的半透明遮罩（FR-15）。
+            // 避免首帧截到尚未消失的半透明遮罩。
             await Task.Delay(120);
 
             if (scale <= 0) scale = DpiHelper.GetScale(); // 兜底：未提供时按主屏 DPI
@@ -66,12 +66,12 @@ namespace ScrollShot
 
             IntPtr hwnd = ScrollController.WindowAt(cx, cy);
             ScrollController.Focus(hwnd);
-            ScrollController.SendCtrlHome(); // 滚到顶部（FR-10）
+            ScrollController.SendCtrlHome(); // 滚到顶部
             await Task.Delay(400);
             string baseName = $"ScrollShot_{DateTime.Now:yyyyMMdd_HHmmss}";
             var vm = new VolumeManager(w, cfg, cfg.OutputDir, baseName);
 
-            // 隐藏光标：把光标移到选区之外，确保截图中不含鼠标指针（FR-14）
+            // 隐藏光标：把光标移到选区之外，确保截图中不含鼠标指针
             int virtL = (int)Math.Round(SystemParameters.VirtualScreenLeft * scale);
             int virtT = (int)Math.Round(SystemParameters.VirtualScreenTop * scale);
             int virtW = (int)Math.Round(SystemParameters.VirtualScreenWidth * scale);
@@ -83,7 +83,7 @@ namespace ScrollShot
             try
             {
                 BitmapSource? first = CaptureOutside(provider, x, y, w, h, cursorX, cursorY);
-                // WGC 未实装时回退到 BitBlt（NFR-05 兜底）
+                // WGC 未实装时回退到 BitBlt
                 if (first == null && cfg.CaptureApi == "WGC") { provider = fallback; first = CaptureOutside(provider, x, y, w, h, cursorX, cursorY); }
                 if (first == null) { res.Empty = true; return res; }
                 StartupLog.Write($"首帧已截取: {first.PixelWidth}x{first.PixelHeight}");
@@ -98,7 +98,7 @@ namespace ScrollShot
                 {
                     if (ctrl.StopRequested) break;
 
-                    // 暂停：挂起滚动，等待用户恢复或停止（UI-21）
+                    // 暂停：挂起滚动，等待用户恢复或停止
                     while (ctrl.PauseRequested && !ctrl.StopRequested)
                         await Task.Delay(100);
                     if (ctrl.StopRequested) break;
@@ -110,12 +110,12 @@ namespace ScrollShot
                     }
                     else
                     {
-                        // 真实滚轮事件按"光标下窗口"路由，故先定位到选区中心（FR-12）
+                        // 真实滚轮事件按"光标下窗口"路由，故先定位到选区中心
                         ScrollController.WheelAt(cx, cy, -notches * 120);
                     }
                     await Task.Delay(cfg.WaitMs);
 
-                    // 滚动事件已入队，立刻把光标移出选区，保证随后所有采样/截图都不含指针（FR-14）
+                    // 滚动事件已入队，立刻把光标移出选区，保证随后所有采样/截图都不含指针
                     NativeMethods.SetCursorPos(cursorX, cursorY);
 
                     BitmapSource? stable = StabilityDetector.WaitStable(provider, x, y, w, h,
@@ -173,7 +173,7 @@ namespace ScrollShot
 
                     StartupLog.Write($"frame {frameCount + 1}: diff={diff:P2} shift={shift}px conf={conf:F2} 选区高={h} 齿数={notches}");
 
-                    // 到底判定（FR-16）：画面几乎没变化 + 匹配位移极小。
+                    // 到底判定：画面几乎没变化 + 匹配位移极小。
                     // 不能要求像素完全相等 —— 编辑器插入光标闪烁会让最底部那一帧永远"有变化"。
                     if (diff < 0.01 && shift <= 2)
                     {
@@ -181,7 +181,7 @@ namespace ScrollShot
                         break;
                     }
 
-                    // 置信度过低：不硬拼（FR-24）。有历史位移就按中位数推进，否则退回配置步长并减半滚轮齿数，
+                    // 置信度过低：不硬拼。有历史位移就按中位数推进，否则退回配置步长并减半滚轮齿数，
                     // 把"一次滚得太远、重叠不够匹配"的状态拉回来。
                     bool lowConf = false;
                     if (conf < 0.25)
@@ -234,7 +234,7 @@ namespace ScrollShot
                     if (vm.ThresholdReached) break;
                 }
 
-                // 结束/中止：除非用户选择"丢弃当前卷"，否则把当前卷封板（FR-16a / FR-17）
+                // 结束/中止：除非用户选择"丢弃当前卷"，否则把当前卷封板
                 if (!ctrl.DiscardRequested)
                     vm.Finish();
                 else
@@ -247,14 +247,14 @@ namespace ScrollShot
             }
             finally
             {
-                NativeMethods.ShowCursor(true); // 恢复光标显示（FR-14）
+                NativeMethods.ShowCursor(true); // 恢复光标显示
             }
 
             return res;
         }
 
         /// <summary>
-        /// 选一个「在虚拟屏内、且在选区之外」的光标停放点（FR-14）。
+        /// 选一个「在虚拟屏内、且在选区之外」的光标停放点。
         ///
         /// 旧实现直接拿设备像素坐标与 SystemParameters.VirtualScreenWidth 比较，而后者是 DIP。
         /// 200% 缩放下 1440 DIP 对应 2880 设备像素，判据 `x + w + 2 &lt; 1440` 在宽选区上恒为假，
@@ -284,7 +284,7 @@ namespace ScrollShot
             return (virtL + virtW - 1, virtT + virtH - 1);
         }
 
-        /// <summary>截屏前确保光标在选区之外，避免指针入图（FR-14）。</summary>
+        /// <summary>截屏前确保光标在选区之外，避免指针入图。</summary>
         private static BitmapSource? CaptureOutside(ICaptureProvider cap, int x, int y, int w, int h,
             int cursorX, int cursorY)
         {
@@ -297,7 +297,7 @@ namespace ScrollShot
             if (cfg.CaptureApi == "WGC")
             {
                 try { return new WgcCapture(); }
-                catch { /* 回退 BitBlt（NFR-05 风险应对） */ }
+                catch { /* 回退 BitBlt */ }
             }
             return new BitBltCapture();
         }

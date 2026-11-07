@@ -31,7 +31,7 @@ Windows 上的滚动截图工具：框选任意可滚动区域，自动滚动、
 ## 快速开始
 
 ```bash
-git clone <your-repo-url>
+# 克隆仓库后进入源码目录
 cd scrollshot/src/ScrollShot
 
 # 调试构建
@@ -104,7 +104,7 @@ scrollshot/
 │   ├── Settings/Config.cs       配置持久化
 │   └── NativeMethods.cs         P/Invoke 声明
 ├── tools/verify_stitch.py       卷间衔接自检脚本
-└── docs/                        文章与配图
+└── docs/                        技术文章、演示脚本与配图
 ```
 
 ## 主要配置项

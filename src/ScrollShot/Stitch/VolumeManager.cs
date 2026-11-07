@@ -9,15 +9,15 @@ using ScrollShot;
 namespace ScrollShot.Stitch
 {
     /// <summary>
-    /// M3 核心：分卷封板引擎（FR-16a / FR-16b / FR-16 / FR-30 / FR-33）。
+    /// 分卷封板引擎。
     ///
     /// 设计要点：
-    ///  - 内存中同一时刻只持有"当前卷"（NFR-03 内存可控的根本原因）；
+    ///  - 内存中同一时刻只持有"当前卷"（内存可控的根本原因）；
     ///  - 每拼入一帧后检查高度：达到「单张最大高度」即触发切点搜索→编码写出→用尾部 overlapPx 初始化下一卷开头；
-    ///  - 切点优化（FR-16b）：在目标高度上方 0–cutSearch 范围内搜索"行间空白行"（方差最低），使切点落在代码行之间；
-    ///  - 卷间重叠（FR-42b）：封板时截取当前卷尾部 overlapPx 作为下一卷开头，保证上下卷上下文连续；
-    ///  - 阈值保护（FR-16）：卷数 / 累计总高度触顶即停止，已封板卷保留可用；
-    ///  - 输出命名（FR-30）：ScrollShot_yyyyMMdd_HHmmss_01.png …，仅写图片、不建索引（FR-49）。
+    ///  - 切点优化：在目标高度上方 0–cutSearch 范围内搜索"行间空白行"（方差最低），使切点落在代码行之间；
+    ///  - 卷间重叠：封板时截取当前卷尾部 overlapPx 作为下一卷开头，保证上下卷上下文连续；
+    ///  - 阈值保护：卷数 / 累计总高度触顶即停止，已封板卷保留可用；
+    ///  - 输出命名：ScrollShot_yyyyMMdd_HHmmss_01.png …，仅写图片、不建索引。
     /// </summary>
     internal class VolumeManager
     {
@@ -66,13 +66,13 @@ namespace ScrollShot.Stitch
             _format = cfg.OutputFormat;
             _jpgQuality = cfg.JpgQuality;
             _cutPointOn = cfg.CutPointOn;
-            _cutSearch = 120; // FR-16b：切点微调范围 0–120px
+            _cutSearch = 120; // 切点微调范围 0–120px
         }
 
         public int VolumeCount => _volIndex;
         public int TotalHeight => _totalHeight;
         public bool ThresholdReached => _thresholdReached;
-        /// <summary>低置信度拼接次数（FR-24）：>0 时结果页需展示告警。</summary>
+        /// <summary>低置信度拼接次数：>0 时结果页需展示告警。</summary>
         public int WarnCount => _warnCount;
         public IReadOnlyList<string> Files => _sealedFiles;
 
@@ -111,7 +111,7 @@ namespace ScrollShot.Stitch
             return false;
         }
 
-        /// <summary>任务结束/中止时调用：把当前卷（无论是否达到最大高度）封板（FR-16a）。</summary>
+        /// <summary>任务结束/中止时调用：把当前卷（无论是否达到最大高度）封板。</summary>
         public void Finish()
         {
             if (_thresholdReached) return;
@@ -137,7 +137,7 @@ namespace ScrollShot.Stitch
                 _totalHeight += cut;
             }
 
-            // 边界重叠：截取当前卷尾部 overlapPx 作为下一卷开头（FR-42b）
+            // 边界重叠：截取当前卷尾部 overlapPx 作为下一卷开头
             bool canContinue = _volIndex < _maxVolumes && _totalHeight < _maxTotalHeight;
             if (canContinue)
             {
@@ -152,12 +152,12 @@ namespace ScrollShot.Stitch
                 }
             }
 
-            // 不能继续（已达阈值）：丢弃当前未封板部分，置阈值标志（FR-16）
+            // 不能继续（已达阈值）：丢弃当前未封板部分，置阈值标志
             _cur.Clear();
             _thresholdReached = _volIndex >= _maxVolumes || _totalHeight >= _maxTotalHeight;
         }
 
-        /// <summary>切点优化：在 [target-cutSearch, target] 内找方差最低的行作为切点（FR-16b）。</summary>
+        /// <summary>切点优化：在 [target-cutSearch, target] 内找方差最低的行作为切点。</summary>
         private int FindCutPoint(int h)
         {
             // 未达单张上限（典型是任务结束时的最后一卷）：整卷保留，不要在中间切，
@@ -213,7 +213,7 @@ namespace ScrollShot.Stitch
 
         /// <summary>
         /// 渲染当前卷的 [a, b) 区间。逐帧按"底边对齐"绘制（后帧覆盖前帧的重叠区），
-        /// 仅拷贝与目标区间相交的行，避免为整卷分配超长位图（内存仅与封板高度相关，NFR-03）。
+        /// 仅拷贝与目标区间相交的行，避免为整卷分配超长位图（内存仅与封板高度相关）。
         /// </summary>
         private BitmapSource? RenderRange(int a, int b)
         {
@@ -249,7 +249,7 @@ namespace ScrollShot.Stitch
                 }
                 catch
                 {
-                    // 单帧异常不得拖垮整卷：跳过该帧，其余帧继续拼（NFR-06 稳定性）
+                    // 单帧异常不得拖垮整卷：跳过该帧，其余帧继续拼
                 }
             }
 

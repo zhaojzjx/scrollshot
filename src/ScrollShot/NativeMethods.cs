@@ -100,7 +100,7 @@ namespace ScrollShot
         public const int SW_RESTORE = 9;
         public const int SW_SHOW = 5;
 
-        // ---- 全局键盘钩子（Esc 中止，FR-17） ----
+        // ---- 全局键盘钩子（Esc 中止） ----
         public const int WH_KEYBOARD_LL = 13;
         public const int WM_KEYDOWN = 0x0100;
         public const int VK_ESCAPE = 27;

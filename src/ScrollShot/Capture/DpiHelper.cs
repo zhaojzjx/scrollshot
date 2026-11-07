@@ -6,7 +6,7 @@ namespace ScrollShot.Capture
 {
     /// <summary>
     /// DPI 换算：把 WPF 的 DIP 坐标转换为 BitBlt 需要的设备像素坐标。
-    /// M1 仅按主屏 DPI 计算（混合 DPI 由 M3 处理）。
+    /// 目前仅按主屏 DPI 计算；混合 DPI 多屏场景尚未支持。
     /// </summary>
     internal static class DpiHelper
     {

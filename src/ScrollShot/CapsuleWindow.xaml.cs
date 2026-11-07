@@ -9,8 +9,8 @@ using ScrollShot;
 namespace ScrollShot
 {
     /// <summary>
-    /// M2 采集胶囊（UI-19~UI-23）：小窗、可拖动、不进截图、含进度与暂停/停止。
-    /// 放置在选区之外（MainWindow 计算位置），因此不会被截入（FR-15 / UI-22）。
+    /// 采集胶囊：小窗、可拖动、不进截图、含进度与暂停/停止。
+    /// 放置在选区之外（MainWindow 计算位置），因此不会被截入。
     /// </summary>
     public partial class CapsuleWindow : Window
     {

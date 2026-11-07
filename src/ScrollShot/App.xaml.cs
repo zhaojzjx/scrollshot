@@ -51,7 +51,7 @@ namespace ScrollShot
                     return;
                 }
 
-                // 主窗口 + 托盘（托盘为快捷键之外的备用入口，FR-01）
+                // 主窗口 + 托盘（托盘为快捷键之外的备用入口）
                 _main = new MainWindow();
                 StartupLog.Write("MainWindow 构造完成");
 

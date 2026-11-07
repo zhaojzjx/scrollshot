@@ -42,7 +42,7 @@ namespace ScrollShot.Stitch
             return total == 0 ? 0 : (double)diff / total;
         }
 
-        /// <summary>按指定格式与质量保存（PNG 默认；JPG 支持质量，FR-35）。</summary>
+        /// <summary>按指定格式与质量保存（PNG 默认；JPG 支持质量）。</summary>
         public static void SaveTo(BitmapSource img, string path, string format, int jpgQuality)
         {
             using var fs = File.Create(path);

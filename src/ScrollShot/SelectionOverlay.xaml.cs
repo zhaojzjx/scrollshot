@@ -8,7 +8,7 @@ namespace ScrollShot
 {
     /// <summary>
     /// 框选遮罩：全屏半透明 + 选区挖洞 + 实时尺寸标签。
-    /// 覆盖虚拟桌面（全部显示器），并暴露自身 DPI 缩放供截图换算（FR-03）。
+    /// 覆盖虚拟桌面（全部显示器），并暴露自身 DPI 缩放供截图换算。
     ///
     /// 交互：拖拽框选 → **松开鼠标即确认并开始采集**（不再需要二次点击"确认"）；Esc 取消。
     /// </summary>
@@ -23,7 +23,7 @@ namespace ScrollShot
 
         /// <summary>
         /// 覆盖层实际使用的 DPI 缩放。WPF 以单一 DPI 渲染整个覆盖窗口，
-        /// 故 DIP→物理像素统一乘此值，与 BitBlt 需要的设备像素坐标自洽（FR-03 / UI-10）。
+        /// 故 DIP→物理像素统一乘此值，与 BitBlt 需要的设备像素坐标自洽。
         /// </summary>
         public double Scale { get; private set; } = 1.0;
 
@@ -41,7 +41,7 @@ namespace ScrollShot
         public SelectionOverlay()
         {
             InitializeComponent();
-            // 覆盖全部显示器（虚屏），满足多屏框选（FR-03 / UI-18）
+            // 覆盖全部显示器（虚屏），满足多屏框选
             WindowStartupLocation = WindowStartupLocation.Manual;
             Left = SystemParameters.VirtualScreenLeft;
             Top = SystemParameters.VirtualScreenTop;
@@ -118,7 +118,7 @@ namespace ScrollShot
             // 选区过小视为误触：回到待框选状态，不退出
             if (Sel.Width < 8 || Sel.Height < 8) { ResetSel(); return; }
 
-            // 松开即确认：遮罩关闭后才开始采集，天然不进截图（FR-15）
+            // 松开即确认：遮罩关闭后才开始采集，天然不进截图
             Confirm();
         }
 

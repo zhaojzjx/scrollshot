@@ -11,7 +11,7 @@ using System.Windows.Media.Imaging;
 namespace ScrollShot
 {
     /// <summary>
-    /// 结果预览窗（UI-24~UI-32）：左预览（默认适应窗口宽度）+ 右卷列表导航 + 复制/打开文件夹/丢弃。
+    /// 结果预览窗：左预览（默认适应窗口宽度）+ 右卷列表导航 + 复制/打开文件夹/丢弃。
     /// 接收多卷文件列表，逐卷浏览。
     /// </summary>
     public partial class PreviewWindow : Window

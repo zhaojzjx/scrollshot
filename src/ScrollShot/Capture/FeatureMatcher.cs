@@ -4,7 +4,7 @@ using System.Windows.Media.Imaging;
 namespace ScrollShot.Capture
 {
     /// <summary>
-    /// 重叠特征匹配：求相邻两帧之间内容上移了多少行（FR-20 / FR-21）。
+    /// 重叠特征匹配：求相邻两帧之间内容上移了多少行。
     ///
     /// 语义：向下滚动时内容整体上移，curr 的第 i 行内容等于 prev 的第 i+s 行。
     ///      s = 内容上移行数 = 本次滚动像素数；curr 在卷内的底边 = prev 底边 + s。
@@ -19,13 +19,13 @@ namespace ScrollShot.Capture
     ///   1) 模板固定在 curr 的 [pad, pad+patch) 行，**所有候选都拿这同一块内容**去 prev 里找位置，
     ///      SAD 曲线才是"同一块内容在不同位置的对齐程度"，可以比较；
     ///   2) 行签名（每行取若干列）把 2D 比较降成行序列比较，全范围逐行扫描也只要十几毫秒；
-    ///   3) 精修在最佳点 ±3 内做全列比较，误差压到 1px（NFR-04）；
+    ///   3) 精修在最佳点 ±3 内做全列比较，误差压到 1px；
     ///   4) 置信度同时考虑**绝对误差**与**歧义度**（次佳与最佳相差多少），
     ///      周期性内容会因歧义度高而自动降置信度，交给上层做稳健处理，而不是硬拼。
     /// </summary>
     internal static class FeatureMatcher
     {
-        /// <summary>低置信度阈值：平均灰度差超过此值认为不可靠（FR-24）。</summary>
+        /// <summary>低置信度阈值：平均灰度差超过此值认为不可靠。</summary>
         public const double LowConfidenceSad = 14.0;
 
         /// <summary>最少重叠行数下限：低于此值的位移视为不可信（防止"只重叠几行"的伪匹配）。</summary>

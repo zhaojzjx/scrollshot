@@ -7,7 +7,7 @@ using Microsoft.Win32;
 namespace ScrollShot
 {
     /// <summary>
-    /// 设置窗口（UI-33~UI-38）：左侧分类 + 右侧表单，改动即时写入 Config 并持久化。
+    /// 设置窗口：左侧分类 + 右侧表单，改动即时写入 Config 并持久化。
     /// </summary>
     public partial class SettingsWindow : Window
     {

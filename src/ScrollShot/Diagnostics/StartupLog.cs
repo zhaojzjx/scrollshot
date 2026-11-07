@@ -5,7 +5,7 @@ using System.Text;
 namespace ScrollShot
 {
     /// <summary>
-    /// 启动诊断日志：只记元信息（时间、阶段、窗口位置），不记录任何图像内容（NFR-10）。
+    /// 启动诊断日志：只记元信息（时间、阶段、窗口位置），不记录任何图像内容。
     /// 文件：%AppData%\ScrollShot\startup.log
     /// 用途：双击后"没有反应"这类静默失败，靠它定位卡在哪一步。
     /// </summary>

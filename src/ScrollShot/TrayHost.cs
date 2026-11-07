@@ -9,7 +9,7 @@ using ScrollShot;
 namespace ScrollShot
 {
     /// <summary>
-    /// 托盘宿主：一个隐藏窗口，仅用于承载通知区图标与回调消息（FR-01 备用入口）。
+    /// 托盘宿主：一个隐藏窗口，仅用于承载通知区图标与回调消息（备用入口）。
     /// 不依赖 WinForms / System.Drawing，图标用系统 IDI_APPLICATION。
     /// </summary>
     internal class TrayHost : Window

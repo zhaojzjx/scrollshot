@@ -22,14 +22,14 @@ namespace ScrollShot
         private readonly object _hookLock = new();
         internal TrayHost? TrayRef { get; set; }
 
-        /// <summary>本次会话的结果（仅内存，关闭主窗口即清空，UI-07）。</summary>
+        /// <summary>本次会话的结果（仅内存，关闭主窗口即清空）。</summary>
         private List<string> _lastFiles = new();
         private int _lastWarnCount;
 
         /// <summary>正在显示的框选遮罩（供全局 Esc 兜底关闭）。</summary>
         private SelectionOverlay? _overlay;
 
-        // 全局键盘钩子（Esc 中止采集，FR-17）
+        // 全局键盘钩子（Esc 中止采集）
         private IntPtr _hook;
         private NativeMethods.LowLevelKeyboardProc? _hookProc;
 
@@ -167,7 +167,7 @@ namespace ScrollShot
                 _overlay = overlay;
                 try
                 {
-                    if (overlay.ShowDialog() != true) return; // 遮罩关闭后才采集，天然不进截图（FR-15）
+                    if (overlay.ShowDialog() != true) return; // 遮罩关闭后才采集，天然不进截图
                     if (overlay.SelectedRect == null) return;
                     started = BeginCapture(overlay.SelectedRect.Value, overlay.Scale);
                 }
@@ -196,7 +196,7 @@ namespace ScrollShot
             if (_running) return false;
             if (scale <= 0) scale = 1.0;
 
-            // 倒计时（FR-04，默认关闭：框选完直接开始采集）
+            // 倒计时（默认关闭：框选完直接开始采集）
             if (_config.CountdownOn)
             {
                 var cd = new CountdownWindow(_config.CountdownSec);
@@ -286,12 +286,12 @@ namespace ScrollShot
             string warnNote = res.WarnCount > 0 ? $" · 告警 {res.WarnCount} 处" : "";
             string first = res.Files[0];
 
-            // 图片在封板时已即时写入保存目录（FR-16a/FR-30），这里只做结果展示
+            // 图片在封板时已即时写入保存目录，这里只做结果展示
             StatusText.Text = $"完成：共 {count} 张 · 已保存到 {_config.OutputDir}";
             ResultText.Text = $"共 {count} 张{sizeNote}{warnNote}\n已保存到：{_config.OutputDir}\n{Path.GetFileName(first)}";
             ResultActions.Visibility = Visibility.Visible;
 
-            // 默认复制首张/当前张到剪贴板（FR-31）
+            // 默认复制首张/当前张到剪贴板
             if (_config.AutoCopy) CopyToClipboard(_config.CopyScope == "Current" ? count - 1 : 0);
 
             ShowPreview(res.Files, $"共 {count} 张", res.WarnCount);
@@ -348,7 +348,7 @@ namespace ScrollShot
             catch { }
         }
 
-        // ---- 关闭最小化到托盘（UI-09） ----
+        // ---- 关闭最小化到托盘 ----
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             if (_config.CloseToTray && !_forceClose)
@@ -368,7 +368,7 @@ namespace ScrollShot
             Close();
         }
 
-        // ---- 全局键盘钩子：Esc 中止（FR-17） ----
+        // ---- 全局键盘钩子：Esc 中止 ----
         private void InstallKeyboardHook()
         {
             _hookProc = HookCallback;

@@ -4,7 +4,7 @@ using System.Windows.Threading;
 
 namespace ScrollShot
 {
-    /// <summary>采集前倒计时浮层（FR-04）：可跳过；倒计时结束后自动关闭并开始采集。</summary>
+    /// <summary>采集前倒计时浮层：可跳过；倒计时结束后自动关闭并开始采集。</summary>
     public partial class CountdownWindow : Window
     {
         private int _remain;
