@@ -372,7 +372,7 @@ if (h <= _maxHeight) return h;   // 没超上限，整卷保留，不要在中�
 
 技术栈是 **WPF + .NET 10**，纯 Win32 P/Invoke，零第三方依赖。发布成 self-contained 单文件 exe，双击就能跑，不需要装运行时、不需要管理员权限、也不需要联网——这几条是给内网机器准备的：那边装不了东西、连不了外网，一个拷进去就能用的单文件几乎是唯一能落地的形态。
 
-代码已放在 **https://github.com/zhaoronghui/scrollshot**，MIT 协议，欢迎取用；编译好的单文件在 https://github.com/zhaoronghui/scrollshot/releases/latest 。上面那些代码片段都是为讲清原理简化过的示意写法，不是可直接编译的工程代码；真正能跑的实现里还多了不少边界处理。
+代码已放在 **https://github.com/zhaojzjx/scrollshot**，MIT 协议，欢迎取用；编译好的单文件在 https://github.com/zhaojzjx/scrollshot/releases/latest 。上面那些代码片段都是为讲清原理简化过的示意写法，不是可直接编译的工程代码；真正能跑的实现里还多了不少边界处理。
 
 不过有一样东西值得单独说：另外让 AI 写了个自检脚本，采集完把上下卷衔接处逐行比对一遍，就是上面那个 0.000 的检查。如果你也要给这种装不了东西的机器做工具，这个自检一定要有——它能把「看起来拼上了」和「真的拼上了」区分开，而这种错误肉眼要滚到很下面才会发现。
 
@@ -395,4 +395,4 @@ if (h <= _maxHeight) return h;   // 没超上限，整卷保留，不要在中�
 ---
 
 *工具由 AI 辅助完成，从提需求到能出图约一个下午；文中代码片段为原理示意，以仓库源码为准。*
-*完整实现见仓库源码：https://github.com/zhaoronghui/scrollshot（MIT）。*
+*完整实现见仓库源码：https://github.com/zhaojzjx/scrollshot（MIT）。*

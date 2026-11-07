@@ -30,7 +30,9 @@
 
 顺便说清楚：这工具是**在外网用 AI 辅助写的，从提需求到能出图大概一个下午**。所以这篇不谈实现，只谈它好不好用、怎么用。想看踩坑和原理，仓库里另有一篇技术复盘。
 
-> 【配图建议：一张最终长图，展示几百行代码连续、无叠字无白带】
+![ScrollShot 主窗口](images/main-window.png)
+
+*图 1｜主窗口：一个「开始滚动截图」按钮就是全部入口，底部状态栏写着「就绪 · 离线运行」。*
 
 ---
 
@@ -40,7 +42,7 @@
 
 当前版本 **v1.0.0**，已经发布，直接下载：
 
-<https://github.com/zhaoronghui/scrollshot/releases/latest>
+<https://github.com/zhaojzjx/scrollshot/releases/latest>
 
 找到附件 `ScrollShot-v1.0.0-win-x64.zip`（约 61 MB），解压出 `ScrollShot.exe`（约 149 MB，自带 .NET 10 运行时）。拷到 U 盘带进内网机器，双击就能跑，不用安装、不用管理员权限、不用联网。
 
@@ -49,13 +51,13 @@
 **方式二：自己编译**（外网机器上，装了 .NET 10 SDK 就行）
 
 ```bash
-git clone https://github.com/zhaoronghui/scrollshot.git
+git clone https://github.com/zhaojzjx/scrollshot.git
 cd scrollshot/src/ScrollShot && dotnet publish -c Release
 ```
 
 产物在 `bin/Release/net10.0-windows/win-x64/publish/ScrollShot.exe`。
 
-> 【配图建议：Releases 页面截图，圈出 zip 附件】
+> 【可选配图：Releases 页面，圈出 zip 附件 —— 发布时自行截一张即可】
 
 ---
 
@@ -81,7 +83,9 @@ cd scrollshot/src/ScrollShot && dotnet publish -c Release
 | 打开设置   | 主窗口「设置」/ 托盘「设置…」                |
 | 打开保存目录 | 主窗口「打开保存目录」/「打开文件夹」             |
 
-> 【配图建议：三格拼图 —— 框选遮罩 / 采集中胶囊 / 预览窗长图】
+![采集中的胶囊控制条](images/capsule.png)
+
+*图 2｜采集中右上角的胶囊条：进度、暂停、停止并保存、丢弃当前卷。*
 
 ---
 
@@ -108,7 +112,11 @@ cd scrollshot/src/ScrollShot && dotnet publish -c Release
 
 主窗口的结果区也留了「预览」「复制首张」「打开文件夹」，采完关了预览窗也能找回来。
 
-> 【配图建议：预览窗截图 + 长图粘进 AI 对话框的效果】
+![采集完成后的预览窗](images/preview-window.png)
+
+*图 3｜预览窗：右侧卷列表列出自动分出的多卷，上方一排按钮可直接复制当前张、复制全部、打开文件夹。*
+
+> 【可选配图：把长图粘进 AI 对话框的效果 —— 发布时补一张】
 
 ---
 
@@ -142,6 +150,10 @@ cd scrollshot/src/ScrollShot && dotnet publish -c Release
 | 想换保存位置 / 格式 | 输出 → 保存位置 / 默认格式 | 也可直接改 `config.json` |
 | 不想自动占剪贴板    | 输出 → 自动复制        | 关掉即可                |
 
+![设置窗口](images/settings-window.png)
+
+*图 4｜设置窗口：左侧五组，右侧是快捷键等常用项，改动即时保存。*
+
 配置文件在 `%AppData%\ScrollShot\config.json`，日志也在同目录，出问题可以直接翻。
 
 ---
@@ -171,9 +183,24 @@ cd scrollshot/src/ScrollShot && dotnet publish -c Release
 
 ---
 
-- **下载**：<https://github.com/zhaoronghui/scrollshot/releases/latest>
-- **仓库**：<https://github.com/zhaoronghui/scrollshot>
+- **下载**：<https://github.com/zhaojzjx/scrollshot/releases/latest>
+- **仓库**：<https://github.com/zhaojzjx/scrollshot>
 - **技术复盘**：仓库内 `docs/tech-notes.md`
 - **协议**：MIT，免费可商用。
 
 *工具与本文均由 AI 辅助完成，从提需求到能出图约一个下午。如果对你有帮助，欢迎转发，或去仓库点个 star。*
+
+---
+
+## 附：配图清单（发布时用，可删）
+
+文中 4 张图均为 v1.0.0 的真实界面截图，文件在仓库 `docs/images/`：
+
+| 图 | 文件 | 用在哪一节 |
+|---|---|---|
+| 图 1 | `main-window.png` | 二、为什么值得装 |
+| 图 2 | `capsule.png` | 四、三步用起来 |
+| 图 3 | `preview-window.png` | 六、结果在哪，怎么交给 AI |
+| 图 4 | `settings-window.png` | 八、几个常用设置 |
+
+公众号编辑器不认 Markdown 相对路径，发布时按上表顺序把图片上传、替换文中引用即可，图注可以直接复制。另有两处标了「可选配图」的位置，需要的话自行补图。

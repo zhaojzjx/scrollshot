@@ -12,7 +12,7 @@
 > 不要说成「内网里开发的工具」，也不要暗示长期打磨。
 > 原理、踩坑、自检脚本放在文章和仓库文档里，视频里一句带过即可。
 >
-> **版本**：v1.0.0 已发布。片尾统一给 https://github.com/zhaoronghui/scrollshot/releases/latest
+> **版本**：v1.0.0 已发布。片尾统一给 https://github.com/zhaojzjx/scrollshot/releases/latest
 > （不要说「自己去编译」，也不要只给仓库首页——观众要的是能直接点进去下载的入口）。
 
 ---
@@ -84,7 +84,7 @@ Cool blue-gray palette, soft depth of field, no text, cinematic, smooth slow mot
 **拍摄步骤**
 
 1. 画面持续自动向下滚动
-2. 镜头切到右上角胶囊，能看清"采集  第 N/300 张   已拼接 XXXX px"（上限默认 300 卷）
+2. 镜头切到右上角胶囊，能看清"采集  第 N/1000 张   已拼接 XXXX px"（1000 是安全上限，正常到底就停）
 3. 建议后期加速 1.5×，让进度变化更明显
 
 **旁白**：接下来不用管它：工具会自己滚动、自己判断画面停稳，一屏一屏接下去。
@@ -167,8 +167,8 @@ Cool blue-gray palette, soft depth of field, no text, cinematic, smooth slow mot
 ScrollShot v1.0.0
 绿色单文件 · 离线 · 免费 · 已发布
 
-下载  github.com/zhaoronghui/scrollshot/releases/latest
-仓库  github.com/zhaoronghui/scrollshot
+下载  github.com/zhaojzjx/scrollshot/releases/latest
+仓库  github.com/zhaojzjx/scrollshot
 MIT 协议 · 源码公开
 
 工具由 AI 辅助写成，约一个下午

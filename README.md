@@ -32,7 +32,7 @@ Windows 上的滚动截图工具：框选任意可滚动区域，自动滚动、
 
 ## 下载
 
-最新稳定版 **[ScrollShot v1.0.0](https://github.com/zhaoronghui/scrollshot/releases/latest)**（Windows 10 / 11，x64）。
+最新稳定版 **[ScrollShot v1.0.0](https://github.com/zhaojzjx/scrollshot/releases/latest)**（Windows 10 / 11，x64）。
 
 | 文件 | 大小 | 说明 |
 |---|---|---|
@@ -48,7 +48,7 @@ Windows 上的滚动截图工具：框选任意可滚动区域，自动滚动、
 只想用现成程序的话，下载上面的 zip 即可。下面是自己编译（需要 .NET 10 SDK）：
 
 ```bash
-git clone https://github.com/zhaoronghui/scrollshot.git
+git clone https://github.com/zhaojzjx/scrollshot.git
 cd scrollshot/src/ScrollShot
 
 # 调试构建
@@ -125,7 +125,12 @@ scrollshot/
     ├── article.md               使用介绍与推荐（公众号稿）
     ├── tech-notes.md            技术复盘
     ├── video-script.md          演示视频分镜与旁白
-    └── images/architecture.svg  采集流程示意图
+    └── images/
+        ├── architecture.svg      采集流程示意图
+        ├── main-window.png       主窗口
+        ├── capsule.png           采集胶囊
+        ├── preview-window.png    预览窗
+        └── settings-window.png   设置窗口
 ```
 
 ## 文档
@@ -135,7 +140,7 @@ scrollshot/
 | [docs/article.md](docs/article.md) | 使用者 | 场景、下载、三步操作、设置、已知限制与推荐理由 |
 | [docs/tech-notes.md](docs/tech-notes.md) | 开发者 | 技术复盘：判稳、位移匹配、底边对齐、分卷切点的四次踩坑 |
 | [docs/video-script.md](docs/video-script.md) | 内容制作 | 演示视频分镜表、旁白全文与拍摄清单 |
-| [docs/images/architecture.svg](docs/images/architecture.svg) | — | 采集流程示意（本页顶部引用） |
+| [docs/images/](docs/images/) | — | 采集流程图 + 文章用的 4 张真实界面截图 |
 
 ## 主要配置项
 
