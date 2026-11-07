@@ -31,7 +31,7 @@ Windows 上的滚动截图工具：框选任意可滚动区域，自动滚动、
 ## 快速开始
 
 ```bash
-# 克隆仓库后进入源码目录
+git clone https://github.com/zhaoronghui/scrollshot.git
 cd scrollshot/src/ScrollShot
 
 # 调试构建

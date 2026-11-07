@@ -364,7 +364,7 @@ if (h <= _maxHeight) return h;   // 没超上限，整卷保留，不要在中�
 
 代码已经开源，MIT 协议：
 
-> **GitHub：项目已开源，采用 MIT 协议**
+> **GitHub：https://github.com/zhaoronghui/scrollshot**
 
 仓库里还放了一个自检脚本 `tools/verify_stitch.py`，采集完可以用它验证多卷之间是否真的连续——就是上面那个 0.000 的检查。
 
@@ -386,5 +386,5 @@ if (h <= _maxHeight) return h;   // 没超上限，整卷保留，不要在中�
 
 ---
 
-*本文涉及的代码已开源，采用 MIT 协议。*
+*本文涉及的项目地址：https://github.com/zhaoronghui/scrollshot*
 *如果对你有帮助，欢迎 star。*
