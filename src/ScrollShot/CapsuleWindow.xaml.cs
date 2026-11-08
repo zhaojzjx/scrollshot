@@ -9,14 +9,18 @@ using ScrollShot;
 namespace ScrollShot
 {
     /// <summary>
-    /// 采集胶囊：小窗、可拖动、不进截图、含进度与暂停/停止。
-    /// 放置在选区之外（MainWindow 计算位置），因此不会被截入。
+    /// 采集胶囊：小窗、含进度与暂停/停止。
+    /// MainWindow 按四方向把它放到选区之外；若确实无处可放或位置意外与选区相交，
+    /// 采集期会直接隐藏它，保证 BitBlt 不会把它截进长图。
     /// </summary>
     public partial class CapsuleWindow : Window
     {
         private readonly CaptureController _ctrl;
         private readonly Action _onPauseToggle;
         private bool _paused;
+
+        /// <summary>采集期间禁止拖动，避免用户把胶囊拖进选区。</summary>
+        public bool DragLocked { get; set; }
 
         public CapsuleWindow(CaptureController ctrl, Action onPauseToggle)
         {
@@ -65,7 +69,7 @@ namespace ScrollShot
 
         private void OnDrag(object sender, MouseButtonEventArgs e)
         {
-            if (e.OriginalSource is Button) return;
+            if (DragLocked || e.OriginalSource is Button) return;
             DragMove();
         }
     }

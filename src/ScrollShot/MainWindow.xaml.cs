@@ -211,21 +211,44 @@ namespace ScrollShot
 
             _ctrl = new CaptureController();
             var rect = dipRect;
-            var capsule = new CapsuleWindow(_ctrl, () => { });
-            double capW = 320;
-            double left = rect.X - capW - 8;
-            if (left < 0) left = rect.X + rect.Width + 8;
-            if (left + capW > SystemParameters.VirtualScreenWidth) left = 20;
-            capsule.Left = left;
-            capsule.Top = rect.Y;
-            capsule.Show();
+            var capsule = new CapsuleWindow(_ctrl, () => { }) { DragLocked = true };
+
+            // 胶囊是 Topmost 窗口，BitBlt 抓的是屏幕合成结果：只要它与选区相交就会被逐帧截进长图。
+            // 旧实现只试左右两侧，两侧都放不下时直接 left = 20 丢回屏幕左上角 —— 200% 缩放下
+            // 虚屏仅 1440 DIP，宽选区必然触发，于是每帧左上角都出现一根深色进度条。
+            // 现在按「右 → 左 → 下 → 上」找一个完整落在虚屏内、且不与选区相交的位置。
+            double vl = SystemParameters.VirtualScreenLeft, vt = SystemParameters.VirtualScreenTop;
+            double vw = SystemParameters.VirtualScreenWidth, vh = SystemParameters.VirtualScreenHeight;
+            double selL = vl + rect.X, selT = vt + rect.Y; // rect 相对虚屏，Window.Left 相对屏幕
+            double capW = capsule.Width, capH = capsule.Height;
+            const double gap = 8;
+            var spots = new (double L, double T)[]
+            {
+                (selL + rect.Width + gap, selT),                   // 右
+                (selL - capW - gap,       selT),                   // 左
+                (selL,                    selT + rect.Height + gap), // 下
+                (selL,                    selT - capH - gap),       // 上
+            };
+            Rect? capsuleDev = null; // 设备像素、相对虚屏，与 CaptureSession 的 x/y 同坐标系
+            foreach (var (l, t) in spots)
+            {
+                if (l < vl || t < vt || l + capW > vl + vw || t + capH > vt + vh) continue;
+                capsule.Left = l;
+                capsule.Top = t;
+                capsuleDev = new Rect((l - vl) * scale, (t - vt) * scale, capW * scale, capH * scale);
+                capsule.Show();
+                break;
+            }
+            if (capsuleDev == null)
+                StartupLog.Write("选区几乎占满虚屏，采集期间不显示胶囊（可用 Esc 中止）");
 
             var session = new CaptureSession();
             Task.Run(async () =>
             {
                 try
                 {
-                    var res = await session.RunAsync(rect, _config, _ctrl, capsule.Update, scale);
+                    var res = await session.RunAsync(rect, _config, _ctrl, capsule.Update, scale,
+                        capsuleDev, () => capsule.Dispatcher.Invoke(new Action(capsule.Hide)));
                     Dispatcher.Invoke(() =>
                     {
                         capsule.Close();

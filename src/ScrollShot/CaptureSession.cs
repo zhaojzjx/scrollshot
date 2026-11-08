@@ -39,7 +39,8 @@ namespace ScrollShot
         }
 
         public async Task<Result> RunAsync(Rect dipRect, Config cfg, CaptureController ctrl,
-            Action<int, int, int, string>? progress = null, double scale = 0)
+            Action<int, int, int, string>? progress = null, double scale = 0,
+            Rect? overlayRect = null, Action? hideOverlay = null)
         {
             var res = new Result();
 
@@ -79,6 +80,22 @@ namespace ScrollShot
             var (cursorX, cursorY) = CursorRestSpot(x, y, w, h, virtL, virtT, virtW, virtH);
             NativeMethods.SetCursorPos(cursorX, cursorY);
             NativeMethods.ShowCursor(false);
+
+            // 采集胶囊是 Topmost 窗口，而 BitBlt 抓的是屏幕合成结果：只要它与选区相交，
+            // 就会被逐帧截进长图（表现为图片里反复出现的深色进度条 + 左侧内容被遮挡）。
+            // MainWindow 已按四方向把它放到选区之外；这里再兜一次底：确实相交就整个采集期隐藏。
+            // 此时距胶囊 Show 已过 500ms 以上，DWM 合成状态稳定，隐藏后补一帧再抓首帧。
+            if (overlayRect.HasValue && hideOverlay != null)
+            {
+                Rect over = overlayRect.Value;
+                over.Inflate(2, 2); // 边框/圆角留 2px 余量
+                if (over.IntersectsWith(new Rect(x, y, w, h)))
+                {
+                    StartupLog.Write("胶囊与选区相交，采集期间隐藏胶囊");
+                    hideOverlay();
+                    await Task.Delay(60);
+                }
+            }
 
             try
             {
