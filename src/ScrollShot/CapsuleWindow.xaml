@@ -4,7 +4,8 @@
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         Topmost="True" ShowInTaskbar="False" ResizeMode="NoResize"
         ShowActivated="False" Focusable="False"
-        Width="330" Height="58" MouseLeftButtonDown="OnDrag">
+        Width="330" Height="58" MouseLeftButtonDown="OnDrag"
+        MouseEnter="OnMouseEnter" MouseLeave="OnMouseLeave">
     <Border BorderBrush="#3C3F41" BorderThickness="1" CornerRadius="8"
             Background="#2B2D30" Opacity="0.94">
         <Grid Margin="10,8,10,8">

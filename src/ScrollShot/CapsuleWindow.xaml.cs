@@ -39,6 +39,11 @@ namespace ScrollShot
                     Dot.Fill = new SolidColorBrush(Color.FromRgb(0x4C, 0xAF, 0x7D));
                     return;
                 }
+                if (_ctrl.PointerOnCapsule)
+                {
+                    Info.Text = "已让行 · 移开鼠标继续";
+                    return;
+                }
                 Info.Text = $"采集  第 {shot}/{max} 张   已拼接 {heightPx} px";
                 double pct = max > 0 ? (double)shot / max * 100 : 0;
                 Bar.Value = pct;
@@ -65,6 +70,18 @@ namespace ScrollShot
             if (r != MessageBoxResult.OK) return;
             _ctrl.DiscardRequested = true;
             _ctrl.StopRequested = true;
+        }
+
+        private void OnMouseEnter(object sender, MouseEventArgs e)
+        {
+            _ctrl.PointerOnCapsule = true;
+            Info.Text = "已让行 · 移开鼠标继续";
+        }
+
+        private void OnMouseLeave(object sender, MouseEventArgs e)
+        {
+            _ctrl.PointerOnCapsule = false;
+            Info.Text = "采集中…";   // 下一帧的 Update 会覆盖成实际进度
         }
 
         private void OnDrag(object sender, MouseButtonEventArgs e)

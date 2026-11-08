@@ -72,14 +72,15 @@ namespace ScrollShot
             string baseName = $"ScrollShot_{DateTime.Now:yyyyMMdd_HHmmss}";
             var vm = new VolumeManager(w, cfg, cfg.OutputDir, baseName);
 
-            // 隐藏光标：把光标移到选区之外，确保截图中不含鼠标指针
+            // 光标停放点：选区之外。BitBlt 本身不会把鼠标指针画进位图，
+            // 这里保留「截屏前让光标待在选区外」作为保险（远程桌面/软件光标场景），
+            // 但不再调用 ShowCursor(false) —— 隐藏系统光标会让用户全程看不见、也点不到胶囊。
             int virtL = (int)Math.Round(SystemParameters.VirtualScreenLeft * scale);
             int virtT = (int)Math.Round(SystemParameters.VirtualScreenTop * scale);
             int virtW = (int)Math.Round(SystemParameters.VirtualScreenWidth * scale);
             int virtH = (int)Math.Round(SystemParameters.VirtualScreenHeight * scale);
             var (cursorX, cursorY) = CursorRestSpot(x, y, w, h, virtL, virtT, virtW, virtH);
             NativeMethods.SetCursorPos(cursorX, cursorY);
-            NativeMethods.ShowCursor(false);
 
             // 采集胶囊是 Topmost 窗口，而 BitBlt 抓的是屏幕合成结果：只要它与选区相交，
             // 就会被逐帧截进长图（表现为图片里反复出现的深色进度条 + 左侧内容被遮挡）。
@@ -97,175 +98,173 @@ namespace ScrollShot
                 }
             }
 
-            try
+            BitmapSource? first = CaptureOutside(provider, x, y, w, h, cursorX, cursorY);
+            // WGC 未实装时回退到 BitBlt
+            if (first == null && cfg.CaptureApi == "WGC") { provider = fallback; first = CaptureOutside(provider, x, y, w, h, cursorX, cursorY); }
+            if (first == null) { res.Empty = true; return res; }
+            StartupLog.Write($"首帧已截取: {first.PixelWidth}x{first.PixelHeight}");
+            vm.AddFrame(first, h); // 首帧整帧入画
+
+            BitmapSource? prev = first;
+            int frameCount = 1;
+            int noChange = 0;   // 连续"整帧无变化"次数，用于判到底
+            StartupLog.Write("进入采集循环");
+
+            for (int i = 1; i < MaxShots; i++)
             {
-                BitmapSource? first = CaptureOutside(provider, x, y, w, h, cursorX, cursorY);
-                // WGC 未实装时回退到 BitBlt
-                if (first == null && cfg.CaptureApi == "WGC") { provider = fallback; first = CaptureOutside(provider, x, y, w, h, cursorX, cursorY); }
-                if (first == null) { res.Empty = true; return res; }
-                StartupLog.Write($"首帧已截取: {first.PixelWidth}x{first.PixelHeight}");
-                vm.AddFrame(first, h); // 首帧整帧入画
+                if (ctrl.StopRequested) break;
 
-                BitmapSource? prev = first;
-                int frameCount = 1;
-                int noChange = 0;   // 连续"整帧无变化"次数，用于判到底
-                StartupLog.Write("进入采集循环");
+                // 用户把鼠标移到胶囊上（要按暂停/停止）或已点暂停时，完全让开鼠标：
+                // 不搬光标、不滚动、不截帧。否则每帧的 SetCursorPos 都会把指针拉走，
+                // 用户连按钮都点不到，只能按 Esc 收场。鼠标移开胶囊即自动恢复。
+                while ((ctrl.PauseRequested || ctrl.PointerOnCapsule) && !ctrl.StopRequested)
+                    await Task.Delay(100);
+                if (ctrl.StopRequested) break;
 
-                for (int i = 1; i < MaxShots; i++)
+                if (cfg.ScrollMethod == "PageDown")
                 {
-                    if (ctrl.StopRequested) break;
+                    NativeMethods.SetCursorPos(cx, cy);   // 保证滚轮/键盘作用于选区内的窗口
+                    ScrollController.PageDown();
+                }
+                else
+                {
+                    // 真实滚轮事件按"光标下窗口"路由，故先定位到选区中心
+                    ScrollController.WheelAt(cx, cy, -notches * 120);
+                }
 
-                    // 暂停：挂起滚动，等待用户恢复或停止
-                    while (ctrl.PauseRequested && !ctrl.StopRequested)
-                        await Task.Delay(100);
-                    if (ctrl.StopRequested) break;
+                // 滚轮一发出就把光标归还停放点，只占用这几毫秒。
+                // 旧实现把这一步放在 await Delay(WaitMs) 之后，光标在选区中心停满 300ms，
+                // 用户鼠标每帧被抢半秒；叠加 ShowCursor(false) 全程隐身，等于完全失去控制。
+                NativeMethods.SetCursorPos(cursorX, cursorY);
 
-                    if (cfg.ScrollMethod == "PageDown")
+                await Task.Delay(cfg.WaitMs);
+
+                BitmapSource? stable = StabilityDetector.WaitStable(provider, x, y, w, h,
+                    stableFrames: cfg.StableFrames, intervalMs: cfg.StableIntervalMs);
+                if (stable == null) break;
+
+                double diff;
+                int shift = 0;
+                double conf = 0;
+
+                // ---- 抓帧确认：低置信度或重叠区对不上时，**原地重抓**（不重新滚动），最多 3 次 ----
+                // 原因：浏览器大跨度滚动后是分块重绘的，个别区块可能还空白或仍是旧画面。
+                // 这种"半成品"帧恰好能通过"连续两帧没变"的判稳（它自己停在半成品状态），
+                // 拼进去就是白块 / 叠字 —— 实测一次采集里出现过 150 多行纯白带。
+                // 原地再抓一帧基本就能拿到画完的画面。
+                for (int attempt = 0; ; attempt++)
+                {
+                    diff = ImageUtil.DiffRatio(prev!, stable);
+
+                    if (diff < 0.0005) { shift = 0; break; }   // 整帧没变，交给下面的"到底"分支
+
+                    shift = FeatureMatcher.FindVerticalShift(prev!, stable, cfg.BandRatio, 3, out conf);
+                    double vSad = FeatureMatcher.VerifySad(prev!, stable, shift);
+                    // 重叠区几乎逐像素一致（vSad 很小）说明这帧本身是好的，conf 低只是因为
+                    // 周期性内容有孪生解 —— 这种不必重抓，交给中位数兜底即可，省时间。
+                    bool ok = vSad <= 6.0 && (conf >= 0.85 || vSad <= 2.0);
+                    if (ok || attempt >= 3) break;
+
+                    StartupLog.Write($"frame {frameCount + 1}: 重抓确认（conf={conf:F2} 重叠SAD={vSad:F2}，第 {attempt + 1} 次）");
+                    await Task.Delay(160);
+                    BitmapSource? again = provider.Capture(x, y, w, h);
+                    if (again == null) break;
+                    stable = again;
+                }
+
+                // ---- 整帧没变：绝不拼入 ----
+                // 内容一行都没动时，"位移"这个概念没有意义，可周期页面会让匹配器给出一个
+                // 看似合理的假位移（实测底部静止页面会报 shift=630 conf=0.35）。
+                // 若照它拼进去，就是把同一段内容反复追加（用户看到的"整段重复"就是这么来的）。
+                // 处理：先加倍滚轮确认一次（排除滚轮没送达），连续两次无变化才判定到底。
+                if (diff < 0.0005)
+                {
+                    noChange++;
+                    StartupLog.Write($"frame {frameCount + 1}: 整帧无变化（第 {noChange} 次），不拼入");
+                    if (noChange >= 2)
                     {
-                        NativeMethods.SetCursorPos(cx, cy);   // 保证滚轮/键盘作用于选区内的窗口
-                        ScrollController.PageDown();
+                        StartupLog.Write($"frame {frameCount}: 已到底（连续 {noChange} 次整帧无变化）");
+                        break;
+                    }
+                    notches = Math.Min(24, notches + 2);
+                    prev = stable;
+                    continue;
+                }
+                noChange = 0;
+
+                StartupLog.Write($"frame {frameCount + 1}: diff={diff:P2} shift={shift}px conf={conf:F2} 选区高={h} 齿数={notches}");
+
+                // 到底判定：画面几乎没变化 + 匹配位移极小。
+                // 不能要求像素完全相等 —— 编辑器插入光标闪烁会让最底部那一帧永远"有变化"。
+                if (diff < 0.01 && shift <= 2)
+                {
+                    StartupLog.Write($"frame {frameCount}: 已到底（diff={diff:P3}, shift={shift}px）");
+                    break;
+                }
+
+                // 置信度过低：不硬拼。有历史位移就按中位数推进，否则退回配置步长并减半滚轮齿数，
+                // 把"一次滚得太远、重叠不够匹配"的状态拉回来。
+                bool lowConf = false;
+                if (conf < 0.25)
+                {
+                    lowConf = true;
+                    if (_recentShifts.Count > 0)
+                    {
+                        int m = Median(_recentShifts);
+                        StartupLog.Write($"frame {frameCount + 1}: conf={conf:F2} 过低，shift {shift}→{m}（沿用中位数）");
+                        shift = m;
                     }
                     else
                     {
-                        // 真实滚轮事件按"光标下窗口"路由，故先定位到选区中心
-                        ScrollController.WheelAt(cx, cy, -notches * 120);
+                        shift = Math.Max(1, Math.Min(h - 8, stepPx));
                     }
-                    await Task.Delay(cfg.WaitMs);
-
-                    // 滚动事件已入队，立刻把光标移出选区，保证随后所有采样/截图都不含指针
-                    NativeMethods.SetCursorPos(cursorX, cursorY);
-
-                    BitmapSource? stable = StabilityDetector.WaitStable(provider, x, y, w, h,
-                        stableFrames: cfg.StableFrames, intervalMs: cfg.StableIntervalMs);
-                    if (stable == null) break;
-
-                    double diff;
-                    int shift = 0;
-                    double conf = 0;
-
-                    // ---- 抓帧确认：低置信度或重叠区对不上时，**原地重抓**（不重新滚动），最多 3 次 ----
-                    // 原因：浏览器大跨度滚动后是分块重绘的，个别区块可能还空白或仍是旧画面。
-                    // 这种"半成品"帧恰好能通过"连续两帧没变"的判稳（它自己停在半成品状态），
-                    // 拼进去就是白块 / 叠字 —— 实测一次采集里出现过 150 多行纯白带。
-                    // 原地再抓一帧基本就能拿到画完的画面。
-                    for (int attempt = 0; ; attempt++)
+                    if (notches > 1) notches = Math.Max(1, notches / 2);
+                    // 注意：这里不清 _recentShifts。历史位移恰恰是下一次低置信度时唯一可用的参照，
+                    // 清掉等于"遇到异常就忘掉正常值"，下帧只能退回配置步长瞎猜。
+                }
+                else if (_recentShifts.Count >= 3 && conf < 0.95)
+                {
+                    // 文本页每次滚轮位移几乎恒定，跳变基本等于匹配错了一格（周期性重复内容最容易这样）。
+                    // 置信度不满分又偏离近三次中位数过多时，采用中位数并计一次告警。
+                    int m = Median(_recentShifts);
+                    int tol = Math.Max(12, (int)(m * 0.10));
+                    if (Math.Abs(shift - m) > tol)
                     {
-                        diff = ImageUtil.DiffRatio(prev!, stable);
-
-                        if (diff < 0.0005) { shift = 0; break; }   // 整帧没变，交给下面的"到底"分支
-
-                        shift = FeatureMatcher.FindVerticalShift(prev!, stable, cfg.BandRatio, 3, out conf);
-                        double vSad = FeatureMatcher.VerifySad(prev!, stable, shift);
-                        // 重叠区几乎逐像素一致（vSad 很小）说明这帧本身是好的，conf 低只是因为
-                        // 周期性内容有孪生解 —— 这种不必重抓，交给中位数兜底即可，省时间。
-                        bool ok = vSad <= 6.0 && (conf >= 0.85 || vSad <= 2.0);
-                        if (ok || attempt >= 3) break;
-
-                        StartupLog.Write($"frame {frameCount + 1}: 重抓确认（conf={conf:F2} 重叠SAD={vSad:F2}，第 {attempt + 1} 次）");
-                        await Task.Delay(160);
-                        BitmapSource? again = provider.Capture(x, y, w, h);
-                        if (again == null) break;
-                        stable = again;
-                    }
-
-                    // ---- 整帧没变：绝不拼入 ----
-                    // 内容一行都没动时，"位移"这个概念没有意义，可周期页面会让匹配器给出一个
-                    // 看似合理的假位移（实测底部静止页面会报 shift=630 conf=0.35）。
-                    // 若照它拼进去，就是把同一段内容反复追加（用户看到的"整段重复"就是这么来的）。
-                    // 处理：先加倍滚轮确认一次（排除滚轮没送达），连续两次无变化才判定到底。
-                    if (diff < 0.0005)
-                    {
-                        noChange++;
-                        StartupLog.Write($"frame {frameCount + 1}: 整帧无变化（第 {noChange} 次），不拼入");
-                        if (noChange >= 2)
-                        {
-                            StartupLog.Write($"frame {frameCount}: 已到底（连续 {noChange} 次整帧无变化）");
-                            break;
-                        }
-                        notches = Math.Min(24, notches + 2);
-                        prev = stable;
-                        continue;
-                    }
-                    noChange = 0;
-
-                    StartupLog.Write($"frame {frameCount + 1}: diff={diff:P2} shift={shift}px conf={conf:F2} 选区高={h} 齿数={notches}");
-
-                    // 到底判定：画面几乎没变化 + 匹配位移极小。
-                    // 不能要求像素完全相等 —— 编辑器插入光标闪烁会让最底部那一帧永远"有变化"。
-                    if (diff < 0.01 && shift <= 2)
-                    {
-                        StartupLog.Write($"frame {frameCount}: 已到底（diff={diff:P3}, shift={shift}px）");
-                        break;
-                    }
-
-                    // 置信度过低：不硬拼。有历史位移就按中位数推进，否则退回配置步长并减半滚轮齿数，
-                    // 把"一次滚得太远、重叠不够匹配"的状态拉回来。
-                    bool lowConf = false;
-                    if (conf < 0.25)
-                    {
+                        StartupLog.Write($"frame {frameCount + 1}: shift={shift} 偏离近三次中位数 {m}（conf={conf:F2}），改用中位数");
+                        shift = m;
                         lowConf = true;
-                        if (_recentShifts.Count > 0)
-                        {
-                            int m = Median(_recentShifts);
-                            StartupLog.Write($"frame {frameCount + 1}: conf={conf:F2} 过低，shift {shift}→{m}（沿用中位数）");
-                            shift = m;
-                        }
-                        else
-                        {
-                            shift = Math.Max(1, Math.Min(h - 8, stepPx));
-                        }
-                        if (notches > 1) notches = Math.Max(1, notches / 2);
-                        // 注意：这里不清 _recentShifts。历史位移恰恰是下一次低置信度时唯一可用的参照，
-                        // 清掉等于"遇到异常就忘掉正常值"，下帧只能退回配置步长瞎猜。
                     }
-                    else if (_recentShifts.Count >= 3 && conf < 0.95)
-                    {
-                        // 文本页每次滚轮位移几乎恒定，跳变基本等于匹配错了一格（周期性重复内容最容易这样）。
-                        // 置信度不满分又偏离近三次中位数过多时，采用中位数并计一次告警。
-                        int m = Median(_recentShifts);
-                        int tol = Math.Max(12, (int)(m * 0.10));
-                        if (Math.Abs(shift - m) > tol)
-                        {
-                            StartupLog.Write($"frame {frameCount + 1}: shift={shift} 偏离近三次中位数 {m}（conf={conf:F2}），改用中位数");
-                            shift = m;
-                            lowConf = true;
-                        }
-                    }
-
-                    // 自适应滚轮齿数：把相邻帧位移控制在选区的 30%~55%。
-                    // 位移一旦超过 0.62h，重叠不足 300px，周期性内容就分不清"滚了一屏"还是"滚了一个重复块"，
-                    // 这是之前出现叠字 / 局部重复的直接原因，所以这里宁可多滚几次也要保住重叠。
-                    double ratio = h > 0 ? (double)shift / h : 0;
-                    if (ratio > 0.62) notches = Math.Max(1, notches - 2);
-                    else if (ratio > 0.55) notches = Math.Max(1, notches - 1);
-                    else if (ratio < 0.30) notches = Math.Min(24, notches + 1);
-
-                    _recentShifts.Add(shift);
-                    if (_recentShifts.Count > 3) _recentShifts.RemoveAt(0);
-
-                    bool sealedNow = vm.AddFrame(stable, shift, lowConf);
-                    prev = stable;
-                    frameCount++;
-
-                    progress?.Invoke(frameCount, MaxShots, vm.TotalHeight, sealedNow ? "writing" : "");
-                    if (vm.ThresholdReached) break;
                 }
 
-                // 结束/中止：除非用户选择"丢弃当前卷"，否则把当前卷封板
-                if (!ctrl.DiscardRequested)
-                    vm.Finish();
-                else
-                    res.Aborted = true;
+                // 自适应滚轮齿数：把相邻帧位移控制在选区的 30%~55%。
+                // 位移一旦超过 0.62h，重叠不足 300px，周期性内容就分不清"滚了一屏"还是"滚了一个重复块"，
+                // 这是之前出现叠字 / 局部重复的直接原因，所以这里宁可多滚几次也要保住重叠。
+                double ratio = h > 0 ? (double)shift / h : 0;
+                if (ratio > 0.62) notches = Math.Max(1, notches - 2);
+                else if (ratio > 0.55) notches = Math.Max(1, notches - 1);
+                else if (ratio < 0.30) notches = Math.Min(24, notches + 1);
 
-                res.ThresholdReached = vm.ThresholdReached;
-                res.WarnCount = vm.WarnCount;
-                res.Files = vm.Files;
-                if (vm.VolumeCount == 0 && !res.Aborted) res.Empty = true;
+                _recentShifts.Add(shift);
+                if (_recentShifts.Count > 3) _recentShifts.RemoveAt(0);
+
+                bool sealedNow = vm.AddFrame(stable, shift, lowConf);
+                prev = stable;
+                frameCount++;
+
+                progress?.Invoke(frameCount, MaxShots, vm.TotalHeight, sealedNow ? "writing" : "");
+                if (vm.ThresholdReached) break;
             }
-            finally
-            {
-                NativeMethods.ShowCursor(true); // 恢复光标显示
-            }
+
+            // 结束/中止：除非用户选择"丢弃当前卷"，否则把当前卷封板
+            if (!ctrl.DiscardRequested)
+                vm.Finish();
+            else
+                res.Aborted = true;
+
+            res.ThresholdReached = vm.ThresholdReached;
+            res.WarnCount = vm.WarnCount;
+            res.Files = vm.Files;
+            if (vm.VolumeCount == 0 && !res.Aborted) res.Empty = true;
 
             return res;
         }
