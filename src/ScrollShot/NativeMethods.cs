@@ -21,6 +21,9 @@ namespace ScrollShot
         public static extern bool SetCursorPos(int x, int y);
 
         [DllImport("user32.dll")]
+        public static extern bool GetCursorPos(out Point lpPoint);
+
+        [DllImport("user32.dll")]
         public static extern IntPtr WindowFromPoint(Point point);
 
         /// <summary>取祖先窗口：GA_ROOT = 2。用于把 WindowFromPoint 拿到的子控件句柄提升为顶层窗口。</summary>

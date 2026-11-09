@@ -60,9 +60,13 @@ namespace ScrollShot
             StartupLog.Write($"采集开始: 选区设备像素 {x},{y} {w}x{h} scale={scale} api={cfg.CaptureApi}");
 
             int stepPx = (int)(h * cfg.ScrollStepRatio);
-            // 每滚轮刻度约 100px 只是初值，不同应用差异极大（VS Code 平滑滚动 ~50px/格，部分应用按屏滚）。
-            // 循环内会依据特征匹配得到的实际位移自适应调整，见下方 notches 调整逻辑。
-            int notches = Math.Max(1, (int)Math.Round(stepPx / 100.0));
+            // 起步只发 2 格，之后靠自适应爬到目标位移。
+            // 旧实现按「每格 100px」估算首帧齿数：实测 VS 是 147px/格，10 格 ≈1470px，
+            // 几乎等于选区高 1476px —— 相邻帧几乎不重叠，匹配器最大只能表达 1353px，
+            // 首帧被硬拼成 1029px，长图里直接少 441px（9 行代码）。
+            // 各应用每格位移差异极大（VS 147px、VS Code 平滑滚动约 50px），绝不能靠猜。
+            int notches = 2;
+            double pxPerNotch = 0;   // 由可信帧学习的「每格滚轮实际滚动像素」
             int cx = x + w / 2, cy = y + h / 2;
 
             IntPtr hwnd = ScrollController.WindowAt(cx, cy);
@@ -72,20 +76,13 @@ namespace ScrollShot
             string baseName = $"ScrollShot_{DateTime.Now:yyyyMMdd_HHmmss}";
             var vm = new VolumeManager(w, cfg, cfg.OutputDir, baseName);
 
-            // 光标停放点：选区之外。BitBlt 本身不会把鼠标指针画进位图，
-            // 这里保留「截屏前让光标待在选区外」作为保险（远程桌面/软件光标场景），
-            // 但不再调用 ShowCursor(false) —— 隐藏系统光标会让用户全程看不见、也点不到胶囊。
-            int virtL = (int)Math.Round(SystemParameters.VirtualScreenLeft * scale);
-            int virtT = (int)Math.Round(SystemParameters.VirtualScreenTop * scale);
-            int virtW = (int)Math.Round(SystemParameters.VirtualScreenWidth * scale);
-            int virtH = (int)Math.Round(SystemParameters.VirtualScreenHeight * scale);
-            var (cursorX, cursorY) = CursorRestSpot(x, y, w, h, virtL, virtT, virtW, virtH);
-            NativeMethods.SetCursorPos(cursorX, cursorY);
+            // 全程不主动搬动用户光标。BitBlt 抓的是屏幕合成结果、不含硬件鼠标指针，
+            // 无需「把光标停到选区外」；旧版每帧 SetCursorPos 到固定停放点是鼠标被抢的根源。
 
             // 采集胶囊是 Topmost 窗口，而 BitBlt 抓的是屏幕合成结果：只要它与选区相交，
             // 就会被逐帧截进长图（表现为图片里反复出现的深色进度条 + 左侧内容被遮挡）。
             // MainWindow 已按四方向把它放到选区之外；这里再兜一次底：确实相交就整个采集期隐藏。
-            // 此时距胶囊 Show 已过 500ms 以上，DWM 合成状态稳定，隐藏后补一帧再抓首帧。
+            bool capsuleHidden = false;
             if (overlayRect.HasValue && hideOverlay != null)
             {
                 Rect over = overlayRect.Value;
@@ -94,13 +91,15 @@ namespace ScrollShot
                 {
                     StartupLog.Write("胶囊与选区相交，采集期间隐藏胶囊");
                     hideOverlay();
+                    capsuleHidden = true;
+                    ctrl.PointerOnCapsule = false;  // 胶囊已隐藏，别让残留的 hover 标志卡住采集
                     await Task.Delay(60);
                 }
             }
 
-            BitmapSource? first = CaptureOutside(provider, x, y, w, h, cursorX, cursorY);
+            BitmapSource? first = provider.Capture(x, y, w, h);
             // WGC 未实装时回退到 BitBlt
-            if (first == null && cfg.CaptureApi == "WGC") { provider = fallback; first = CaptureOutside(provider, x, y, w, h, cursorX, cursorY); }
+            if (first == null && cfg.CaptureApi == "WGC") { provider = fallback; first = provider.Capture(x, y, w, h); }
             if (first == null) { res.Empty = true; return res; }
             StartupLog.Write($"首帧已截取: {first.PixelWidth}x{first.PixelHeight}");
             vm.AddFrame(first, h); // 首帧整帧入画
@@ -108,34 +107,51 @@ namespace ScrollShot
             BitmapSource? prev = first;
             int frameCount = 1;
             int noChange = 0;   // 连续"整帧无变化"次数，用于判到底
-            StartupLog.Write("进入采集循环");
+            StartupLog.Write($"进入采集循环: 起步 {notches} 格, 目标步长 {stepPx}px");
 
             for (int i = 1; i < MaxShots; i++)
             {
                 if (ctrl.StopRequested) break;
 
-                // 用户把鼠标移到胶囊上（要按暂停/停止）或已点暂停时，完全让开鼠标：
-                // 不搬光标、不滚动、不截帧。否则每帧的 SetCursorPos 都会把指针拉走，
-                // 用户连按钮都点不到，只能按 Esc 收场。鼠标移开胶囊即自动恢复。
-                while ((ctrl.PauseRequested || ctrl.PointerOnCapsule) && !ctrl.StopRequested)
+                // 让行：用户把鼠标移到胶囊上（要按暂停/停止）或已点暂停时，不动鼠标、不滚动、不截帧。
+                // 除 hover 事件外再轮询一次真实光标位置：程序搬运光标会打断 MouseEnter/Leave，
+                // 只看事件标志容易漏；给胶囊外扩 12px 余量，鼠标靠近就先让开，按钮才点得到。
+                // 余量刻意小于胶囊与选区的间距(16px)，避免框选刚松手就被误判成"悬停胶囊"。
+                var userPt = ScrollController.Cursor();
+                bool nearCapsule = !capsuleHidden && overlayRect.HasValue &&
+                                   Near(userPt, overlayRect.Value, 12);
+                while ((ctrl.PauseRequested || ctrl.PointerOnCapsule || nearCapsule) && !ctrl.StopRequested)
+                {
                     await Task.Delay(100);
+                    userPt = ScrollController.Cursor();
+                    nearCapsule = !capsuleHidden && overlayRect.HasValue &&
+                                  Near(userPt, overlayRect.Value, 12);
+                }
                 if (ctrl.StopRequested) break;
+                if (userPt.X < 0 || userPt.Y < 0) userPt = new System.Drawing.Point(cx, cy); // 取位置失败时按"已在选区内"处理
+
+                // 安全上限：一次滚动绝不能超过选区 55%，否则相邻帧重叠不足、特征匹配无解。
+                // 还没学到「每格像素」时最多 3 格 —— 宁可多滚几帧，也不能漏内容。
+                int safeMax = pxPerNotch > 1 ? Math.Max(1, (int)(h * 0.55 / pxPerNotch)) : 3;
+                notches = Math.Max(1, Math.Min(Math.Min(24, safeMax), notches));
+                int usedNotches = notches;
 
                 if (cfg.ScrollMethod == "PageDown")
                 {
-                    NativeMethods.SetCursorPos(cx, cy);   // 保证滚轮/键盘作用于选区内的窗口
+                    // 键盘消息发给前台焦点窗口，与光标位置无关：一次都不碰鼠标。
                     ScrollController.PageDown();
                 }
                 else
                 {
-                    // 真实滚轮事件按"光标下窗口"路由，故先定位到选区中心
-                    ScrollController.WheelAt(cx, cy, -notches * 120);
+                    // 真实滚轮按「光标下窗口」路由。用户鼠标已经在选区内、或仍在目标窗口里时
+                    // 直接发滚轮即可，完全不搬光标；只有鼠标落在别的窗口上才短暂借用，
+                    // 发完立刻归还到用户原本的位置（而不是旧版的固定停放点）。
+                    IntPtr centerWnd = ScrollController.RawWindowAt(cx, cy); // 每帧重取，遮罩消失后自动更新
+                    bool borrow = !Inside(userPt, x, y, w, h) && !ScrollController.CursorOnWindow(userPt, centerWnd);
+                    if (borrow) NativeMethods.SetCursorPos(cx, cy);
+                    ScrollController.Wheel(-usedNotches * 120);
+                    if (borrow) NativeMethods.SetCursorPos(userPt.X, userPt.Y);
                 }
-
-                // 滚轮一发出就把光标归还停放点，只占用这几毫秒。
-                // 旧实现把这一步放在 await Delay(WaitMs) 之后，光标在选区中心停满 300ms，
-                // 用户鼠标每帧被抢半秒；叠加 ShowCursor(false) 全程隐身，等于完全失去控制。
-                NativeMethods.SetCursorPos(cursorX, cursorY);
 
                 await Task.Delay(cfg.WaitMs);
 
@@ -146,6 +162,7 @@ namespace ScrollShot
                 double diff;
                 int shift = 0;
                 double conf = 0;
+                double vSad = double.MaxValue;
 
                 // ---- 抓帧确认：低置信度或重叠区对不上时，**原地重抓**（不重新滚动），最多 3 次 ----
                 // 原因：浏览器大跨度滚动后是分块重绘的，个别区块可能还空白或仍是旧画面。
@@ -159,7 +176,7 @@ namespace ScrollShot
                     if (diff < 0.0005) { shift = 0; break; }   // 整帧没变，交给下面的"到底"分支
 
                     shift = FeatureMatcher.FindVerticalShift(prev!, stable, cfg.BandRatio, 3, out conf);
-                    double vSad = FeatureMatcher.VerifySad(prev!, stable, shift);
+                    vSad = FeatureMatcher.VerifySad(prev!, stable, shift);
                     // 重叠区几乎逐像素一致（vSad 很小）说明这帧本身是好的，conf 低只是因为
                     // 周期性内容有孪生解 —— 这种不必重抓，交给中位数兜底即可，省时间。
                     bool ok = vSad <= 6.0 && (conf >= 0.85 || vSad <= 2.0);
@@ -192,7 +209,7 @@ namespace ScrollShot
                 }
                 noChange = 0;
 
-                StartupLog.Write($"frame {frameCount + 1}: diff={diff:P2} shift={shift}px conf={conf:F2} 选区高={h} 齿数={notches}");
+                StartupLog.Write($"frame {frameCount + 1}: diff={diff:P2} shift={shift}px conf={conf:F2} 重叠SAD={vSad:F1} 选区高={h} 齿数={usedNotches} 每格≈{pxPerNotch:F0}px");
 
                 // 到底判定：画面几乎没变化 + 匹配位移极小。
                 // 不能要求像素完全相等 —— 编辑器插入光标闪烁会让最底部那一帧永远"有变化"。
@@ -236,6 +253,36 @@ namespace ScrollShot
                     }
                 }
 
+                // ---- 物理模型交叉校验：防止「重叠区认错位置」造成漏行 ----
+                // pxPerNotch 由前几帧可信匹配学到；本帧发了 usedNotches 格，内容上移量
+                // 理应接近 usedNotches × pxPerNotch。代码页高度重复时行签名偶尔会认错一格，
+                // 给出的 shift 偏小 → 新帧盖住旧帧底部，那几行内容就永久丢了。
+                // 用「全重叠区一致性」在两个候选间择优：当前匹配本来就好（SAD ≤ 3）就不动，
+                // 只有明显对不上、而物理估计对得更齐时才纠正。
+                if (pxPerNotch > 1)
+                {
+                    int physical = (int)Math.Round(pxPerNotch * usedNotches);
+                    if (physical >= 2 && physical < h && Math.Abs(physical - shift) > 24)
+                    {
+                        double sadCur = FeatureMatcher.VerifySad(prev!, stable!, Math.Clamp(shift, 0, h - 1));
+                        double sadPhys = FeatureMatcher.VerifySad(prev!, stable!, physical);
+                        if (sadCur > 3.0 && sadPhys < sadCur - 0.5)
+                        {
+                            StartupLog.Write($"frame {frameCount + 1}: 位移按滚轮物理模型修正 {shift}→{physical}（重叠SAD {sadCur:F2}→{sadPhys:F2}）");
+                            shift = physical;
+                            conf = Math.Max(conf, 0.9);
+                        }
+                    }
+                }
+
+                // 学到「每格滚轮到底滚了多少像素」，供下一帧的安全上限与物理校验使用。
+                // 只采信高置信度、重叠区也确实对得上的帧，避免把错配学进模型。
+                if (conf >= 0.85 && vSad <= 6.0 && usedNotches > 0 && shift > 0)
+                {
+                    double observed = (double)shift / usedNotches;
+                    pxPerNotch = pxPerNotch <= 0 ? observed : pxPerNotch * 0.6 + observed * 0.4;
+                }
+
                 // 自适应滚轮齿数：把相邻帧位移控制在选区的 30%~55%。
                 // 位移一旦超过 0.62h，重叠不足 300px，周期性内容就分不清"滚了一屏"还是"滚了一个重复块"，
                 // 这是之前出现叠字 / 局部重复的直接原因，所以这里宁可多滚几次也要保住重叠。
@@ -269,44 +316,18 @@ namespace ScrollShot
             return res;
         }
 
-        /// <summary>
-        /// 选一个「在虚拟屏内、且在选区之外」的光标停放点。
-        ///
-        /// 旧实现直接拿设备像素坐标与 SystemParameters.VirtualScreenWidth 比较，而后者是 DIP。
-        /// 200% 缩放下 1440 DIP 对应 2880 设备像素，判据 `x + w + 2 &lt; 1440` 在宽选区上恒为假，
-        /// 于是走到 x - 2；若选区贴着左边缘（x = 0）就是一个负坐标，
-        /// SetCursorPos 会把它夹回 (0, y) —— 正好落在选区里，鼠标指针被截进图。
-        ///
-        /// 现在按「右 → 左 → 下 → 上」的优先级找落点，全部用设备像素比较，
-        /// 只有选区铺满整个虚拟屏时才退到右下角（此时无处可躲）。
-        /// </summary>
-        private static (int X, int Y) CursorRestSpot(int x, int y, int w, int h,
-            int virtL, int virtT, int virtW, int virtH)
+        /// <summary>光标是否落在某个矩形（含外扩余量）内，用于「靠近胶囊就让行」。</summary>
+        private static bool Near(System.Drawing.Point p, Rect r, int pad)
         {
-            const int pad = 2;
-
-            int right = x + w + pad;
-            if (right <= virtL + virtW) return (right, y);
-
-            int left = x - pad;
-            if (left >= virtL) return (left, y);
-
-            int bottom = y + h + pad;
-            if (bottom <= virtT + virtH) return (x, bottom);
-
-            int top = y - pad;
-            if (top >= virtT) return (x, top);
-
-            return (virtL + virtW - 1, virtT + virtH - 1);
+            if (p.X < 0 || p.Y < 0) return false;
+            var e = r;
+            e.Inflate(pad, pad);
+            return e.Contains(p.X, p.Y);
         }
 
-        /// <summary>截屏前确保光标在选区之外，避免指针入图。</summary>
-        private static BitmapSource? CaptureOutside(ICaptureProvider cap, int x, int y, int w, int h,
-            int cursorX, int cursorY)
-        {
-            NativeMethods.SetCursorPos(cursorX, cursorY);
-            return cap.Capture(x, y, w, h);
-        }
+        /// <summary>光标是否在选区内（设备像素）。</summary>
+        private static bool Inside(System.Drawing.Point p, int x, int y, int w, int h) =>
+            p.X >= x && p.X < x + w && p.Y >= y && p.Y < y + h;
 
         private static ICaptureProvider MakeProvider(Config cfg)
         {
