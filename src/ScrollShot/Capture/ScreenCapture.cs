@@ -47,8 +47,13 @@ namespace ScrollShot.Capture
                 hBmp, IntPtr.Zero, Int32Rect.Empty, BitmapSizeOptions.FromEmptyOptions());
             NativeMethods.DeleteObject(hBmp); // 源已拷贝，删除 GDI 位图
 
-            // 统一规整为 Bgr32，便于拼接按 4 字节/像素寻址
-            return new FormatConvertedBitmap(src, PixelFormats.Bgr32, null, 0);
+            // 统一规整为 Bgr32，便于拼接按 4 字节/像素寻址。
+            // 必须 Freeze：采集循环里有 await，continuation 会切到别的线程池线程；
+            // 未冻结的 BitmapSource 绑在创建它的线程上，后续卷渲染跨线程读 PixelHeight
+            // 会抛 InvalidOperationException，整卷直接丢失（实测第 40 帧崩过一次）。
+            var bmp = new FormatConvertedBitmap(src, PixelFormats.Bgr32, null, 0);
+            if (bmp.CanFreeze) bmp.Freeze();
+            return bmp;
         }
     }
 }

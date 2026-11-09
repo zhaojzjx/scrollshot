@@ -60,8 +60,9 @@ namespace ScrollShot
         /// <summary>从托盘唤起主窗口：先还原，再显示并置前。</summary>
         public void ShowAndActivate()
         {
+            _hiddenByCapture = false;   // 用户主动唤起，不必再等采集回调恢复
             if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
-            Show();
+            Show();                     // WPF 的 Show 才会重建隐藏期间的渲染目标
             Activate();
             Topmost = true;
             Topmost = false;
@@ -80,6 +81,14 @@ namespace ScrollShot
         // ---- 全局热键 ----
         private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
+            // 第二个实例双击 exe 时发来的「请显示主窗口」。必须在 UI 线程用 WPF Show()，
+            // 不能在别的进程里 ShowWindow —— 那样只会得到一个黑客户区。
+            if (msg == (int)App.WM_SHOW_MAIN)
+            {
+                Dispatcher.BeginInvoke(new Action(ShowAndActivate));
+                handled = true;
+                return IntPtr.Zero;
+            }
             if (msg == NativeMethods.WM_HOTKEY && (int)wParam == HOTKEY_ID)
             {
                 if (!_running) StartCapture();

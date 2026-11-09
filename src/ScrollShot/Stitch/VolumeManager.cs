@@ -225,23 +225,23 @@ namespace ScrollShot.Stitch
 
             foreach (var f in _cur)
             {
-                int fh = f.Bmp.PixelHeight;
-                int fTop = f.Bottom - fh;                  // 帧顶边（可能为负：该帧顶部已被 seed 覆盖）
-                int copyStart = Math.Max(a, fTop);         // 拷贝区间（卷坐标）
-                int copyEnd = Math.Min(b, f.Bottom);
-                if (copyEnd <= copyStart) continue;
-
-                int srcTop = copyStart - fTop;
-                int copyH = copyEnd - copyStart;
-                int dstY = copyStart - a;
-                int sStride = f.Bmp.PixelWidth * 4;
-                int cw = Math.Min(_width, f.Bmp.PixelWidth);   // 宽不一致时取小，避免越界
-                if (cw <= 0) continue;
-                if (srcTop < 0 || srcTop + copyH > fh) continue;
-                if (dstY < 0 || dstY + copyH > height) continue;
-
                 try
                 {
+                    int fh = f.Bmp.PixelHeight;
+                    int fTop = f.Bottom - fh;                  // 帧顶边（可能为负：该帧顶部已被 seed 覆盖）
+                    int copyStart = Math.Max(a, fTop);         // 拷贝区间（卷坐标）
+                    int copyEnd = Math.Min(b, f.Bottom);
+                    if (copyEnd <= copyStart) continue;
+
+                    int srcTop = copyStart - fTop;
+                    int copyH = copyEnd - copyStart;
+                    int dstY = copyStart - a;
+                    int sStride = f.Bmp.PixelWidth * 4;
+                    int cw = Math.Min(_width, f.Bmp.PixelWidth);   // 宽不一致时取小，避免越界
+                    if (cw <= 0) continue;
+                    if (srcTop < 0 || srcTop + copyH > fh) continue;
+                    if (dstY < 0 || dstY + copyH > height) continue;
+
                     var buf = new byte[sStride * copyH];
                     f.Bmp.CopyPixels(new Int32Rect(0, srcTop, cw, copyH), buf, sStride, 0);
                     for (int row = 0; row < copyH; row++)
@@ -249,13 +249,17 @@ namespace ScrollShot.Stitch
                 }
                 catch
                 {
-                    // 单帧异常不得拖垮整卷：跳过该帧，其余帧继续拼
+                    // 单帧异常不得拖垮整卷：跳过该帧，其余帧继续拼。
+                    // PixelHeight 也在 try 内 —— 未冻结的位图跨线程读它同样会抛，
+                    // 以前这个异常直接冒泡出 Seal()，整卷没写盘就丢了。
                 }
             }
 
-            var wb = new WriteableBitmap(_width, height, 96, 96, PixelFormats.Bgr32, null);
-            wb.WritePixels(new Int32Rect(0, 0, _width, height), canvas, tStride, 0);
-            return wb;
+            // 用 BitmapSource.Create 而不是 WriteableBitmap：后者不可 Freeze，而这里的结果
+            // 会作为下一卷的 seed 帧被别的线程读取（await 后线程会切换）。冻结后才线程无关。
+            var bmp = BitmapSource.Create(_width, height, 96, 96, PixelFormats.Bgr32, null, canvas, tStride);
+            if (bmp.CanFreeze) bmp.Freeze();
+            return bmp;
         }
 
         private string SaveVolume(BitmapSource img, int index)

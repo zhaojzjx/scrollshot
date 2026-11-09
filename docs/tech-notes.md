@@ -366,6 +366,20 @@ if (h <= _maxHeight) return h;   // 没超上限，整卷保留，不要在中�
 
 这行同时还修了一个内容丢失的问题：原来即使没超上限也会走切点搜索，可能把尾部内容切掉。
 
+### 隐藏的窗口不能用 Win32 强行显示
+
+「关闭到托盘」用 WPF 的 `Hide()`。第二个实例双击 exe 时，最早的做法是 `FindWindow` 找到 HWND 后 `ShowWindow(SW_SHOW)` + `SetForegroundWindow`。结果是：标题栏正常（系统绘制）、客户区全黑——Win32 只把 HWND 变可见，WPF 的渲染目标不会重建。托盘菜单的「打开主窗口」走 `ShowAndActivate()`（`Show()`）一直正常。
+
+改成跨进程自定义消息：`RegisterWindowMessage("ScrollShot.ShowMainWindow")` + `PostMessage`，已有实例的 `WndProc` 收到后在 UI 线程 `Dispatcher.BeginInvoke(ShowAndActivate)`。不引 IPC，也不越俎代庖去改别人的窗口状态。
+
+### 后台线程的 BitmapSource 必须 Freeze
+
+`BitBltCapture.Capture()` 返回 `FormatConvertedBitmap`，`VolumeManager.RenderRange()` 原来返回 `WriteableBitmap`。这些都是绑在创建线程上的 `Freezable`，而采集循环里有 `await Task.Delay`，continuation 会切到别的线程池线程。攒了几十帧后封板渲染要读早先那些帧的 `PixelHeight`，就抛 `InvalidOperationException: 调用线程无法访问此对象`——异常从 `Seal()` 冒泡出去，**当前卷直接没写盘**。
+
+修法：帧生成后立刻 `Freeze()`；`RenderRange` 改用 `BitmapSource.Create`（`WriteableBitmap` 不可冻结）并 Freeze；逐帧循环整段包 try/catch，单帧异常只跳过该帧，绝不拖垮整卷。
+
+顺带修了尾部重复：`diff < 1%` 说明已到底、只剩最后一小段滚动，此时不再用历史中位数覆盖实际位移（实测末尾 81px 曾被改成 441px，平白多出一截重复内容）。
+
 ---
 
 ## 九、最终的样子

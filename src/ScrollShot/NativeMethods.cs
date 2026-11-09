@@ -48,6 +48,13 @@ namespace ScrollShot
         [DllImport("user32.dll", CharSet = CharSet.Unicode)]
         public static extern IntPtr FindWindow(string? lpClassName, string? lpWindowName);
 
+        /// <summary>跨进程约定的自定义消息：请已有实例用 WPF 的方式显示主窗口。</summary>
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        public static extern uint RegisterWindowMessage(string lpString);
+
+        [DllImport("user32.dll")]
+        public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
         [DllImport("user32.dll")]
         public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 

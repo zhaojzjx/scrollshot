@@ -12,6 +12,10 @@ namespace ScrollShot
         private MainWindow? _main;
         private TrayHost? _tray;
 
+        /// <summary>第二个实例请已有实例显示主窗口用的跨进程消息（同名注册返回同一个 ID）。</summary>
+        internal static readonly uint WM_SHOW_MAIN =
+            NativeMethods.RegisterWindowMessage("ScrollShot.ShowMainWindow");
+
         protected override void OnStartup(StartupEventArgs e)
         {
             // 进入托管代码的第一行就落日志：若日志文件根本没生成，说明问题出在 exe 解压 / 杀软拦截，
@@ -93,8 +97,12 @@ namespace ScrollShot
         }
 
         /// <summary>
-        /// 找到已运行实例的主窗口并还原/置前。窗口标题固定为"滚动截图"（MainWindow.xaml）。
-        /// 不引入 IPC，仅靠 Win32 查找，足够且零依赖。
+        /// 找到已运行实例的主窗口，请它自己显示/置前。
+        ///
+        /// 不能用 ShowWindow 硬显示：主窗口是 WPF Hide() 藏起来的（关闭到托盘 / 采集期间自动隐藏），
+        /// Win32 只把 HWND 变可见，WPF 的渲染目标不会重建 —— 表现就是标题栏在、客户区全黑。
+        /// 托盘菜单的「打开主窗口」走 ShowAndActivate()（WPF Show）一直正常，这里改成发一条
+        /// 自定义消息，让已有实例的 UI 线程走同一条路径。
         /// </summary>
         private static bool ActivateExistingWindow()
         {
@@ -104,15 +112,9 @@ namespace ScrollShot
                 StartupLog.Write($"FindWindow(\"滚动截图\") = {h}");
                 if (h == IntPtr.Zero) return false;
 
-                if (NativeMethods.IsIconic(h))
-                    NativeMethods.ShowWindow(h, NativeMethods.SW_RESTORE);
-                else
-                    NativeMethods.ShowWindow(h, NativeMethods.SW_SHOW);
-
-                // 忽略返回值：Windows 前台窗口锁策略下 SetForegroundWindow 常返回 false，
-                // 但窗口实际已被提到前台。只要找到窗口就认为激活成功，不再弹提示框。
-                NativeMethods.SetForegroundWindow(h);
-                return true;
+                bool sent = NativeMethods.PostMessage(h, WM_SHOW_MAIN, IntPtr.Zero, IntPtr.Zero);
+                StartupLog.Write($"PostMessage(WM_SHOW_MAIN={WM_SHOW_MAIN}) = {sent}");
+                return sent;
             }
             catch (Exception ex)
             {
