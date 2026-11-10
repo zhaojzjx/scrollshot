@@ -10,6 +10,8 @@
     <RootNamespace>ScrollShot</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <!-- exe 的文件图标：会写进 PE 资源，单文件发布后依然是这枚图标 -->
+    <ApplicationIcon>Assets\app.ico</ApplicationIcon>
 
     <!--
       单文件发布配置：绿色免安装单文件 exe、自带运行库、无需管理员权限。
@@ -29,5 +31,10 @@
     <!-- 发布产物只保留单一 exe：不生成 pdb 调试符号（运行不需要） -->
     <DebugType>none</DebugType>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!-- 嵌进程序集：窗口标题栏图标 + 托盘 HICON 都取这份，发布后仍保持单文件 -->
+    <Resource Include="Assets\app.ico" />
+  </ItemGroup>
 
 </Project>

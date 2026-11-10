@@ -380,6 +380,16 @@ if (h <= _maxHeight) return h;   // 没超上限，整卷保留，不要在中�
 
 顺带修了尾部重复：`diff < 1%` 说明已到底、只剩最后一小段滚动，此时不再用历史中位数覆盖实际位移（实测末尾 81px 曾被改成 441px，平白多出一截重复内容）。
 
+### 托盘图标一直没出现，是 `NIM_ADD` 写错了
+
+最尴尬的一个：`Shell_NotifyIcon` 的 `NIM_ADD` 是 **0**，`0x0001` 是 `NIM_MODIFY`。代码里写成 `NIM_ADD = 0x0001`，等于让系统「修改一个根本不存在的图标」，调用静默失败、不抛异常。于是「关闭主窗口 → `Hide()` 收进托盘」照常发生，进程还在、热键还在，但托盘里什么都没有——用户看到一个关不掉也找不着的进程。
+
+第二个错误叠加在上面：加载系统预定义图标时把 `hInst` 传成了 `GetModuleHandle(null)`（exe 自己的模块）。`IDI_APPLICATION` 只有 `hInst = NULL` 时才代表系统库存图标；传了 exe 句柄，Windows 就去 exe 资源里找编号 32512，当然找不到，`hIcon = 0`。就算注册成功也没图标可画。
+
+现在托盘图标来自程序自带的 `Assets/app.ico`（多尺寸 BMP 帧），用 `CreateIconFromResourceEx` 从内嵌资源直接生成 `HICON`；`.ico` 同时通过 `<ApplicationIcon>` 写进 apphost 的 PE 资源，exe 在资源管理器里也是这枚图标。另外补了三件事：`NIM_ADD` 用完整版 `NOTIFYICONDATAW`（976 字节，失败则退到 296 字节的 V1 尺寸）、监听 `TaskbarCreated` 让 Explorer 重启后自动补注册、首次收进托盘弹一次气泡说明图标可能被 Win11 收进 `^` 溢出区。
+
+顺带修了退出：托盘宿主本身也是一个 `Window` 且先 `Show()`，WPF 会把它当作 `MainWindow`。不显式指定 `MainWindow` + `ShutdownMode = OnMainWindowClose` 的话，即使用户在设置里选了「关闭主窗口时 → 退出」，进程也会因为托盘窗口还开着而赖着不走。
+
 ---
 
 ## 九、最终的样子

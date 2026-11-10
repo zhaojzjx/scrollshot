@@ -59,6 +59,11 @@ namespace ScrollShot
                 _main = new MainWindow();
                 StartupLog.Write("MainWindow 构造完成");
 
+                // 托盘宿主也是一个 Window，且它先 Show —— 不显式指定的话 WPF 会把它当成 MainWindow，
+                // ShutdownMode 就会失效：关闭主窗口后进程因为托盘窗口还开着而不退出。
+                MainWindow = _main;
+                ShutdownMode = ShutdownMode.OnMainWindowClose;
+
                 _tray = new TrayHost(
                     onStart: () => _main.TriggerCapture(),
                     onShow: () => _main.ShowAndActivate(),
@@ -110,9 +115,15 @@ namespace ScrollShot
             {
                 IntPtr h = NativeMethods.FindWindow(null, "滚动截图");
                 StartupLog.Write($"FindWindow(\"滚动截图\") = {h}");
-                if (h == IntPtr.Zero) return false;
 
-                bool sent = NativeMethods.PostMessage(h, WM_SHOW_MAIN, IntPtr.Zero, IntPtr.Zero);
+                // 主窗口被 Hide() 收进托盘时，按标题查找不一定命中；
+                // 再向所有顶层窗口广播一条注册消息，只有本程序认识这个 ID。
+                bool sent = false;
+                if (h != IntPtr.Zero)
+                    sent = NativeMethods.PostMessage(h, WM_SHOW_MAIN, IntPtr.Zero, IntPtr.Zero);
+                if (!sent)
+                    sent = NativeMethods.PostMessage(new IntPtr(0xffff), WM_SHOW_MAIN,
+                        IntPtr.Zero, IntPtr.Zero); // HWND_BROADCAST
                 StartupLog.Write($"PostMessage(WM_SHOW_MAIN={WM_SHOW_MAIN}) = {sent}");
                 return sent;
             }

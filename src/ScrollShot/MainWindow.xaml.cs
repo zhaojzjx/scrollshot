@@ -387,9 +387,14 @@ namespace ScrollShot
             {
                 e.Cancel = true;
                 Hide();
+                StartupLog.Write("关闭主窗口：最小化到托盘（进程保留，热键仍可用）");
+                // 首次收进托盘时弹一次气泡：图标可能被 Win11 收进 ^ 溢出区，
+                // 不提示的话用户会以为「窗口关了、进程还在、图标也没有」。
+                TrayRef?.NotifyMinimized();
                 return;
             }
             UninstallKeyboardHook();
+            StartupLog.Write("关闭主窗口：退出程序");
             base.OnClosing(e);
         }
 
