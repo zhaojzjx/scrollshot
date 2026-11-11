@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ScrollShot 演示视频 · 拍摄脚本与旁白</title>
+<style>
+:root{--ink:#1c2530;--dim:#5b6b7c;--line:#e2e8f0;--blue:#1f5fbf;--bg:#f5f7fa;--card:#fff}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+ font:16px/1.75 "Microsoft YaHei","PingFang SC","Segoe UI",sans-serif}
+.wrap{max-width:980px;margin:0 auto;padding:36px 32px 80px;background:var(--card);
+ box-shadow:0 1px 24px rgba(16,32,52,.08);min-height:100vh}
+h1{font-size:28px;margin:0 0 22px;padding-bottom:14px;border-bottom:3px solid var(--blue)}
+h2{font-size:21px;margin:38px 0 14px;padding-left:12px;border-left:5px solid var(--blue)}
+h3{font-size:17px;margin:26px 0 10px;color:var(--blue)}
+p{margin:10px 0}
+strong{color:#12263f}
+code{background:#eef2f7;border:1px solid #dfe6ef;border-radius:4px;padding:1px 5px;
+ font:13px/1.6 Consolas,"Courier New",monospace;color:#134a8e}
+pre{background:#101a26;color:#dbe7f3;border-radius:8px;padding:14px 16px;overflow:auto;
+ font:13px/1.7 Consolas,"Courier New",monospace}
+pre code{background:none;border:0;color:inherit;padding:0}
+table{width:100%;border-collapse:collapse;margin:16px 0;font-size:13.5px}
+th{background:#eef4fb;color:#274b7a;text-align:left;padding:8px 10px;border-bottom:2px solid #d4e2f2;white-space:nowrap}
+.nw{white-space:nowrap}
+td{padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+tr:nth-child(even) td{background:#fafcfe}
+blockquote{margin:14px 0;padding:12px 16px;background:#f0f6fd;border-left:4px solid #6ea8e8;
+ border-radius:0 6px 6px 0;color:#2d4a6b}
+blockquote p{margin:6px 0}
+ul,ol{margin:10px 0 10px 22px;padding:0}
+li{margin:5px 0}
+li.task{list-style:none;position:relative;padding-left:24px;margin-left:-20px}
+li.task::before{content:"☐";position:absolute;left:0;color:#8aa0b8;font-size:15px}
+li.task.done::before{content:"☑";color:#2f9e6a}
+hr{border:0;border-top:1px solid var(--line);margin:30px 0}
+a{color:var(--blue);word-break:break-all}
+@media print{body{background:#fff}.wrap{box-shadow:none;padding:0}pre{background:#f4f6f9;color:#1c2530}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>ScrollShot 演示视频 · 拍摄脚本与旁白</h1>
+<table><thead><tr><th>项目</th><th>内容</th></tr></thead><tbody><tr><td>成片时长</td><td>2 分 05 秒（可剪 60 秒短版，见第九节）</td></tr><tr><td>画面规格</td><td>1920×1080 / 30fps / H.264，码率 ≥ 8 Mbps</td></tr><tr><td>音频</td><td>48kHz 单声道旁白，旁白电平 -6 dB 峰值</td></tr><tr><td>发布渠道</td><td>B 站、视频号、公众号内嵌、GitHub Release 页面</td></tr><tr><td>对应版本</td><td>v1.0.0（已发布）</td></tr><tr><td>配套文章</td><td><code>docs/article.md</code>《内网代码想给外网 AI 看？》</td></tr></tbody></table>
+<hr>
+<h2>口径与禁区（先看这一节，比脚本重要）</h2>
+<p><strong>必须说对的</strong></p>
+<ul><li>工具是<strong>在外网</strong>用 AI 辅助写的，从提需求到能出图<strong>大概一个下午</strong>；</li><li>用途是<strong>把内网代码截成长图，带出去给外网 AI 读</strong>；</li><li>仓库公开、MIT、免费；</li><li>片子讲<strong>怎么用 + 为什么值得用</strong>，不讲实现原理。</li></ul>
+<p><strong>不能说的</strong></p>
+<ul><li>❌「这工具是在内网开发的」——反了，内网只是使用场景；</li><li>❌「打磨了很久 / 做了几个月」——不实，也不符合实际；</li><li>❌ 讲算法细节、贴代码——那是 <code>docs/tech-notes.md</code> 的事，视频里一句都别提；</li><li>❌ 只给仓库首页——观众要的是能直接点进去下载的 Releases 链接。</li></ul>
+<p><strong>全片唯一入口</strong>：<code>https://github.com/zhaojzjx/scrollshot/releases/latest</code></p>
+<hr>
+<h2>一、分镜总表</h2>
+<table><thead><tr><th>#</th><th>时间</th><th>时长</th><th>画面</th><th>方式</th><th>屏幕字幕</th></tr></thead><tbody><tr><td><span class="nw">1</span></td><td><span class="nw">0:00–0:08</span></td><td><span class="nw">8s</span></td><td>代码文件不断向下延伸，滚动条缩成一点</td><td>AI 生成 / 实拍</td><td>内网的代码，一张截图装不下</td></tr><tr><td><span class="nw">2</span></td><td><span class="nw">0:08–0:16</span></td><td><span class="nw">8s</span></td><td><code>Win+Shift+S</code> 只截到一屏，下面大片空白</td><td>录屏</td><td>普通截图，只有一屏</td></tr><tr><td><span class="nw">3</span></td><td><span class="nw">0:16–0:26</span></td><td><span class="nw">10s</span></td><td>Releases 附件 → 解压 → 双击 → 托盘出现小相机</td><td>录屏</td><td>一个 exe，双击就能跑</td></tr><tr><td><span class="nw">4</span></td><td><span class="nw">0:26–0:38</span></td><td><span class="nw">12s</span></td><td><code>Ctrl+Alt+S</code> → 拖框 → 松手即开始</td><td>录屏</td><td>框选完松手，不用确认</td></tr><tr><td><span class="nw">5</span></td><td><span class="nw">0:38–0:50</span></td><td><span class="nw">12s</span></td><td>自动滚动，胶囊显示「第 N/1000 张 · 已拼接 XXXX px」</td><td>录屏（1.5×）</td><td>自己滚、自己拼</td></tr><tr><td><span class="nw">6</span></td><td><span class="nw">0:50–1:02</span></td><td><span class="nw">12s</span></td><td>鼠标移到胶囊 → 让行 → 暂停 → 停止并保存</td><td>录屏</td><td>鼠标始终归你</td></tr><tr><td><span class="nw">7</span></td><td><span class="nw">1:02–1:14</span></td><td><span class="nw">12s</span></td><td>预览窗自动弹出，切第 2 卷</td><td>录屏</td><td>太长自动分卷</td></tr><tr><td><span class="nw">8</span></td><td><span class="nw">1:14–1:24</span></td><td><span class="nw">10s</span></td><td>100% 缩放看接缝</td><td>录屏</td><td>不叠字、不断行、不漏行</td></tr><tr><td><span class="nw">9</span></td><td><span class="nw">1:24–1:36</span></td><td><span class="nw">12s</span></td><td>切到 AI 对话框 <code>Ctrl+V</code></td><td>录屏</td><td>截完直接粘给 AI</td></tr><tr><td><span class="nw">10</span></td><td><span class="nw">1:36–1:48</span></td><td><span class="nw">12s</span></td><td>设置窗口 + 资源管理器里的单个 exe</td><td>录屏</td><td>离线 · 免安装 · 可调</td></tr><tr><td><span class="nw">11</span></td><td><span class="nw">1:48–2:05</span></td><td><span class="nw">17s</span></td><td>片尾信息卡，逐行淡入</td><td>图文动画</td><td>下载地址 / 仓库 / MIT</td></tr></tbody></table>
+<hr>
+<h2>二、逐段脚本</h2>
+<h3>段 1｜问题（0:00–0:08）</h3>
+<p><strong>画面</strong>：一页极长的源代码，镜头缓慢上摇，页面像永远到不了头；右侧滚动条滑块缩成一个小点。</p>
+<p><strong>做法</strong>：AI 生成，或直接用录屏拍一段真实代码文件往下滚（更省事、也更可信）。若用 AI，prompt：</p>
+<pre><code>A minimalist 3D scene: an impossibly tall source-code file extending upward into darkness,
+covered in abstract rows of luminous gray lines. The camera slowly tilts up while the page
+keeps growing. On the right edge a scrollbar thumb shrinks into a tiny glowing dot.
+Cool blue-gray palette, soft depth of field, no text, cinematic, slow motion.</code></pre>
+<p><strong>字幕</strong>：内网的代码，一张截图装不下</p>
+<p><strong>旁白</strong>：内网的机器上，代码看得见，却带不出来。想给外网的 AI 看，只剩一个办法——截图。可一个文件几百行，一张截图装不下。</p>
+<blockquote><p>8 秒内必须把「问题」立住，这是完播率的分水岭。</p></blockquote>
+<hr>
+<h3>段 2｜普通截图的局限（0:08–0:16）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>打开一个长代码文件，滚到中部；</li><li>按 <code>Win + Shift + S</code> 截一屏，贴到画图/预览里；</li><li>鼠标往下拖，露出下面是空白 —— 让「只截到一屏」变成可见的对比；</li><li>停 1 秒再切。</li></ol>
+<p><strong>字幕</strong>：普通截图，只有一屏</p>
+<p><strong>旁白</strong>：普通截图只能截到眼前这一屏，往下的内容全断了。一张张发给 AI，它拿到的是一堆碎片。</p>
+<hr>
+<h3>段 3｜下载与启动（0:16–0:26）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>浏览器打开 Releases 页面，镜头停在 <code>Assets</code> 区，能看到 <code>ScrollShot-v1.0.0-win-x64.zip</code>（2 秒）；</li><li>资源管理器里解压，选中那个唯一的 <code>ScrollShot.exe</code>（1.5 秒）；</li><li>双击启动，主窗口出现，底部状态栏写着「就绪 · 离线运行」；</li><li>镜头切到任务栏右下角，点 <code>^</code> 展开溢出区，露出蓝底小相机的托盘图标（2 秒）。</li></ol>
+<blockquote><p><strong>关键</strong>：Win11 默认把新图标收进 <code>^</code> 溢出区，一定要拍「点开 ^ 才看到」这个动作，否则观众会以为没启动。</p></blockquote>
+<p><strong>字幕</strong>：一个 exe，双击就能跑</p>
+<p><strong>旁白</strong>：要用的东西就一个 exe。从 Releases 下载压缩包，解压，双击就能跑——不用安装，不用管理员权限，也不用联网。托盘里那个蓝底小相机，就是它。</p>
+<hr>
+<h3>段 4｜三步开始（0:26–0:38）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>按 <code>Ctrl + Alt + S</code>，屏幕变暗进入框选；</li><li>拖一个框，<strong>只框代码内容区</strong>，不要带标题栏和任务栏（顺手能解释「框多大，图就多宽」）；</li><li>松手的瞬间开始采集，停半秒让观众看清这个动作；</li><li>可叠一行小字：<code>Ctrl+Alt+S 可自定义</code>。</li></ol>
+<blockquote><p>这是与很多截图工具的操作差异点，<strong>松手即开始</strong>要拍清楚，不要剪掉。</p></blockquote>
+<p><strong>字幕</strong>：框选完松手，不用确认</p>
+<p><strong>旁白</strong>：按下 Ctrl+Alt+S，屏幕变暗，拖一个框，只框内容区。松开鼠标的那一刻，它自己就开始了，不用再点确认。</p>
+<hr>
+<h3>段 5｜自动采集（0:38–0:50）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>画面持续自动向下滚；</li><li>切一个胶囊的近景，能看清「采集　第 N/1000 张　已拼接 XXXX px」（1000 是安全上限，正常到底就停，别在字幕里解释成「最多截 1000 张」）；</li><li>后期这段可 1.5× 加速，让数字跳得更明显；</li><li>结尾两秒切回全屏，看进度条已经走了一大截。</li></ol>
+<p><strong>字幕</strong>：自己滚、自己拼</p>
+<p><strong>旁白</strong>：接下来不用管。它会把内容滚回顶部，然后一屏一屏地滚、截、拼。选区外的胶囊条显示当前进度，永远不会被截进长图。</p>
+<hr>
+<h3>段 6｜中途可控（0:50–1:02）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>鼠标从选区外缓慢移到胶囊上 —— 画面停住，胶囊变成「已让行 · 移开鼠标继续」；</li><li>停 1 秒，让观众看清「鼠标没有被抢走」；</li><li>点 ⏸ 暂停，光标随意晃一下（证明能自由移动），再点继续；</li><li>点「■ 停止并保存」，预览窗提前弹出；</li><li>字幕补一行小字：<code>✕ 可作废当前卷</code>。</li></ol>
+<blockquote><p>这段是「用起来放心」的核心卖点，<strong>不要加速</strong>，按钮位置要让观众记住。</p></blockquote>
+<p><strong>字幕</strong>：鼠标始终归你</p>
+<p><strong>旁白</strong>：采集时鼠标始终归你。移到胶囊上，它会自动让行，暂停滚动，让你从容点按钮：暂停、继续，或者停止并保存已经拼好的部分。</p>
+<hr>
+<h3>段 7｜结果与分卷（1:02–1:14）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>采集到底，预览窗自动弹出；</li><li>滚轮快速下滚，展示长图长度；</li><li>点左侧卷列表切到第 2 卷；</li><li>状态栏出现「第 2 / 4 张 · 1900 × 约 6000 px · 保存于 …」，镜头停 1 秒；</li><li>不要念具体卷数，成片按实际拍摄结果改。</li></ol>
+<p><strong>字幕</strong>：太长自动分卷</p>
+<p><strong>旁白</strong>：到底之后，预览窗自动弹出，图已经存好了。内容太长，它会自动分卷，切点落在行间空白，卷与卷之间还留了一段重叠，上下文不断。</p>
+<hr>
+<h3>段 8｜接缝特写（1:14–1:24）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>预览窗缩放切到 100%；</li><li>滚到两帧的接缝处，用镜头推近（或后期放大到 200%）；</li><li>让观众看清：上下两行文字连续、行号不跳号、没有重影、没有白带。</li></ol>
+<blockquote><p>全片最有说服力的 10 秒，<strong>一帧都别剪</strong>。原理一句不讲，只给结果。</p></blockquote>
+<p><strong>字幕</strong>：不叠字、不断行、不漏行</p>
+<p><strong>旁白</strong>：放大到百分之百看接缝——文字上下连贯，没有重影，没有白带，也没有漏掉的行。</p>
+<hr>
+<h3>段 9｜交给 AI（1:24–1:36）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>采集结束，预览窗弹出，顺手点一下「复制当前张」（视觉提示「已在剪贴板」）；</li><li>切到提前登录好的 AI 对话框；</li><li><code>Ctrl + V</code>，长图出现在输入框里，停 2 秒；</li><li>输入一句提示词，让它回答，镜头停 2 秒在回答上 —— 这才叫闭环；</li><li>小字提示：多卷时点「复制全部」，注明「同一份代码的第 1/2/3 段」。</li></ol>
+<blockquote><p>呼应段 1 的「带不出来」。这是全片的高潮，务必拍到 AI 真的读懂了图。</p></blockquote>
+<p><strong>字幕</strong>：截完直接粘给 AI</p>
+<p><strong>旁白</strong>：最省事的是这一步：首张已经自动进了剪贴板。切到 AI 对话框，Ctrl+V，一份完整的代码就交过去了。</p>
+<hr>
+<h3>段 10｜为什么值得装（1:36–1:48）</h3>
+<p><strong>拍摄步骤</strong></p>
+<ol><li>设置窗口快速扫过「常规 / 采集 / 拼接 / 输出 / 高级」五组，停在「输出」页；</li><li>手指指向「保存位置 / 默认格式 / 自动复制」三项即可，不要逐条念；</li><li>切到资源管理器里的单个 <code>ScrollShot.exe</code>，双击；</li><li>叠三行字幕卡：<strong>不联网 · 不上传 / 免安装 / 热键与格式可调</strong>。</li></ol>
+<p><strong>字幕</strong>：离线 · 免安装 · 可调</p>
+<p><strong>旁白</strong>：整个过程不联网、不上传，截图不经过任何服务器。设置里能改热键、滚动方式、输出格式和保存位置，默认值就够用。</p>
+<hr>
+<h3>段 11｜片尾（1:48–2:05）</h3>
+<p><strong>画面</strong>：深底卡片，逐行淡入，每行间隔 0.4 秒。</p>
+<pre><code>ScrollShot v1.0.0
+绿色单文件 · 离线 · 免费
+
+下载  github.com/zhaojzjx/scrollshot/releases/latest
+仓库  github.com/zhaojzjx/scrollshot
+MIT 协议 · 源码公开
+
+外网用 AI 辅助写成，约一个下午</code></pre>
+<p><strong>字幕</strong>：与卡片一致，下载那行单独高亮</p>
+<p><strong>旁白</strong>：ScrollShot，v1.0.0，MIT 协议，免费。Releases 页面直接下载。它是外网用 AI 辅助写的，大概一个下午——地址在片尾，需要自取。</p>
+<blockquote><p>卡片停留 ≥ 4 秒，下载地址那行用高亮色，方便观众暂停抄写。</p></blockquote>
+<hr>
+<h2>三、旁白全文（可直接配音）</h2>
+<blockquote><p>语速按 4.5 字/秒写，全文约 560 字，正常念完约 2 分 05 秒。配得慢一点可自然延到 2 分 20 秒，画面按旁白对齐即可。</p></blockquote>
+<p><strong>0:00</strong>　内网的机器上，代码看得见，却带不出来。想给外网的 AI 看，只剩一个办法——截图。可一个文件几百行，一张截图装不下。</p>
+<p><strong>0:08</strong>　普通截图只能截到眼前这一屏，往下的内容全断了。一张张发给 AI，它拿到的是一堆碎片。</p>
+<p><strong>0:16</strong>　要用的东西就一个 exe。从 Releases 下载压缩包，解压，双击就能跑——不用安装，不用管理员权限，也不用联网。托盘里那个蓝底小相机，就是它。</p>
+<p><strong>0:26</strong>　按下 Ctrl+Alt+S，屏幕变暗，拖一个框，只框内容区。松开鼠标的那一刻，它自己就开始了，不用再点确认。</p>
+<p><strong>0:38</strong>　接下来不用管。它会把内容滚回顶部，然后一屏一屏地滚、截、拼。选区外的胶囊条显示当前进度，永远不会被截进长图。</p>
+<p><strong>0:50</strong>　采集时鼠标始终归你。移到胶囊上，它会自动让行，暂停滚动，让你从容点按钮：暂停、继续，或者停止并保存已经拼好的部分。</p>
+<p><strong>1:02</strong>　到底之后，预览窗自动弹出，图已经存好了。内容太长，它会自动分卷，切点落在行间空白，卷与卷之间还留了一段重叠，上下文不断。</p>
+<p><strong>1:14</strong>　放大到百分之百看接缝——文字上下连贯，没有重影，没有白带，也没有漏掉的行。</p>
+<p><strong>1:24</strong>　最省事的是这一步：首张已经自动进了剪贴板。切到 AI 对话框，Ctrl+V，一份完整的代码就交过去了。</p>
+<p><strong>1:36</strong>　整个过程不联网、不上传，截图不经过任何服务器。设置里能改热键、滚动方式、输出格式和保存位置，默认值就够用。</p>
+<p><strong>1:48</strong>　ScrollShot，v1.0.0，MIT 协议，免费。Releases 页面直接下载。它是外网用 AI 辅助写的，大概一个下午——地址在片尾，需要自取。</p>
+<hr>
+<h2>四、字幕</h2>
+<p>可直接导入剪映 / Premiere 的字幕文件已生成：<code>docs/video-subtitles.srt</code>（UTF-8，与上面时间码完全对应）。若自行打轴，屏幕字幕保持<strong>每行不超过 14 字</strong>，全片最多两行。</p>
+<p>几条硬规则：</p>
+<ul><li>专有名词保持原样：<code>Ctrl+Alt+S</code>、<code>ScrollShot</code>、<code>MIT</code>、<code>Releases</code>；</li><li>数字与单位之间不加空格：<code>100%</code>、<code>6000px</code>；</li><li>旁白里说「百分之百」，字幕写 <code>100%</code>；</li><li>不要出现「最强」「神器」「秒杀」这类词，和工具的实际定位不符。</li></ul>
+<hr>
+<h2>五、拍摄前准备清单</h2>
+<p><strong>环境</strong></p>
+<ul><li class="task">分辨率固定 1920×1080，缩放 <strong>100%</strong>（混合 DPI 会让画面尺寸跳动）</li><li class="task">关闭所有通知：微信、邮件、系统提示、录屏软件自身的悬浮窗</li><li class="task">桌面壁纸换纯色或极简图，任务栏隐藏不常用图标（托盘区只留小相机，镜头才干净）</li><li class="task">退出旧版 ScrollShot 进程，确认跑的是 <code>dist-v105</code> 这一版（托盘图标是小相机那版）</li><li class="task">准备一个<strong>文字密集</strong>的长代码文件，至少能滚七八屏，才拍得出分卷</li></ul>
+<p><strong>素材</strong></p>
+<ul><li class="task">Releases 页面提前打开，附件区能看到 zip（段 3）</li><li class="task">一个已登录的 AI 对话框，提前问过一轮，避免现场等（段 9）</li><li class="task">片尾卡片按第十一段的文字做好，地址逐字核对一遍</li></ul>
+<p><strong>录制</strong></p>
+<ul><li class="task">录屏帧率 ≥ 30fps，开启光标高亮（观众要看清「鼠标没被抢」）</li><li class="task">段 5 单独录一条 1.5× 的素材备用</li><li class="task">每段单独录，段间留 2 秒静帧，方便后期对齐</li><li class="task">段 6、段 8 各录两条：一条正常、一条更慢，后期挑清楚的那条</li></ul>
+<hr>
+<h2>六、录屏参数建议</h2>
+<table><thead><tr><th>参数</th><th>建议值</th><th>原因</th></tr></thead><tbody><tr><td>录制区域</td><td>全屏 1920×1080</td><td>与成片一致，省得缩放模糊</td></tr><tr><td>帧率</td><td>30fps（段 5 可 60fps 再降速）</td><td>滚动画面 30fps 够，60fps 方便做慢动作</td></tr><tr><td>编码</td><td>H.264，CRF 18 或 8 Mbps</td><td>代码文字边缘不能糊</td></tr><tr><td>光标</td><td>显示 + 点击高亮</td><td>段 6 要靠光标证明「没被抢」</td></tr><tr><td>系统缩放</td><td>100%</td><td>200% 下字会很大，画面显得挤</td></tr></tbody></table>
+<hr>
+<h2>七、后期建议</h2>
+<ul><li><strong>配乐</strong>：轻电子／氛围，音量压到旁白的 15% 以下；段 8（接缝特写）可整段静音，让观众专心看</li><li><strong>字幕</strong>：全程硬字幕，思源黑体 Medium，描边 1px 深色</li><li><strong>转场</strong>：只淡入淡出，不要缩放、不要甩镜</li><li><strong>节奏</strong>：前 8 秒立问题，1 分 24 秒前必须出现「粘给 AI」的闭环，否则完播率会掉</li><li><strong>强调</strong>：段 6 的胶囊按钮、段 8 的接缝，各加一个 0.3 秒的圆形高亮</li><li><strong>片尾</strong>：地址卡 ≥ 4 秒；B 站版可在最后加 3 秒关注引导，公众号版直接切黑</li></ul>
+<hr>
+<h2>八、发布文案</h2>
+<p><strong>B 站 / 视频号标题</strong>（选一个）</p>
+<ol><li>内网代码带不出来？我做了个免费小工具，框一下自动拼成长图</li><li>一个下午用 AI 写的小工具：把几百行代码截成一张长图，直接喂给 AI</li><li>不用登录、不用联网，双击就能用的滚动截图工具</li></ol>
+<p><strong>简介</strong></p>
+<pre><code>内网机器上的代码带不出来，想给外网的 AI 看只能截图，可一张截图装不下一个文件。
+这个工具就是为这件事写的：框选一下，它自己滚到底、自己拼成一张长图，
+不叠字、不断行、不漏行，截完首张已经在剪贴板里，Ctrl+V 就能粘给 AI。
+
+绿色单文件，不联网、不上传、免安装、不用管理员权限，MIT 协议免费。
+
+下载：https://github.com/zhaojzjx/scrollshot/releases/latest
+仓库：https://github.com/zhaojzjx/scrollshot
+
+工具在外网用 AI 辅助写成，从提需求到能出图大概一个下午。</code></pre>
+<p><strong>公众号内嵌</strong>：视频放第二节「先说结论」之后，或第六节「结果在哪」之前，两边都自洽。</p>
+<p><strong>封面</strong>：直接用 <code>docs/images/wechat-cover.png</code>（900×383），B 站另出一版 16:9。</p>
+<hr>
+<h2>九、60 秒短版剪法</h2>
+<p>短视频平台（抖音/视频号）用这一版，只留四段：</p>
+<table><thead><tr><th>原段</th><th>保留内容</th><th>新时长</th></tr></thead><tbody><tr><td><span class="nw">1</span></td><td>问题，压到 5 秒</td><td><span class="nw">5s</span></td></tr><tr><td><span class="nw">4</span></td><td>框选、松手即开始</td><td><span class="nw">8s</span></td></tr><tr><td>5 + 8</td><td>自动滚动 6 秒，直接切接缝特写 6 秒</td><td><span class="nw">12s</span></td></tr><tr><td><span class="nw">9</span></td><td>粘给 AI，让它读出来</td><td><span class="nw">10s</span></td></tr><tr><td><span class="nw">11</span></td><td>片尾地址卡</td><td><span class="nw">8s</span></td></tr></tbody></table>
+<p>合计约 43 秒，留 17 秒给片头钩子和转场。旁白只保留四句：</p>
+<blockquote><p>内网代码带不出来，只能截图，可一张装不下。</p><p>框一下，它自己滚到底、自己拼。</p><p>放大看接缝，不叠字、不漏行。</p><p>截完直接 Ctrl+V 粘给 AI。免费开源，地址在片尾。</p></blockquote>
+</div>
+</body>
+</html>
