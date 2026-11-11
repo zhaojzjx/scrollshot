@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>内网代码想给外网 AI 看？这个免费小工具，三步截成一张长图 — 公众号排版稿</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#eef1f5;font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;color:#3f3f3f}
+.page{max-width:375px;margin:32px auto;background:#fff;border-radius:10px;box-shadow:0 6px 28px rgba(20,40,80,.10);overflow:hidden}
+.meta{padding:18px 22px 14px;background:#f8fafc;border-bottom:1px solid #e8edf3;font-size:12px;line-height:1.9;color:#7a8798}
+.meta b{color:#334155;font-weight:600}
+.meta .hint{display:block;margin-top:6px;color:#b06a00;background:#fff7e6;border:1px dashed #f0c37a;border-radius:6px;padding:6px 9px}
+.wx-article{max-width:375px;margin:0 auto;padding:26px 20px 38px;background:#fff;
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;font-size:16px;line-height:1.9;color:#3f3f3f;letter-spacing:.3px}
+.wx-article h1{font-size:22px;line-height:1.55;color:#14171c;font-weight:700;letter-spacing:0;margin:0 0 18px}
+.wx-article h2{font-size:18px;line-height:1.6;color:#1a56a8;font-weight:700;margin:34px 0 14px;padding-left:11px;border-left:4px solid #2f7be0}
+.wx-article h3{font-size:16px;color:#1f2937;font-weight:700;margin:24px 0 10px}
+.wx-article p{margin:0 0 18px}
+.wx-article strong{color:#14171c;font-weight:700}
+.wx-article em{font-style:normal;color:#5b6b7f}
+.wx-article a{color:#2f7be0;text-decoration:none;word-break:break-all}
+.wx-article blockquote{margin:18px 0 22px;padding:12px 14px;background:#f6f9fd;border-left:3px solid #6aa9e9;border-radius:0 6px 6px 0;color:#4d6076;font-size:15px;line-height:1.85}
+.wx-article blockquote.note{background:#fffbf2;border-left-color:#e8b45c;color:#8a6524;font-size:14px}
+.wx-article blockquote p{margin:0}
+.wx-article ul,.wx-article ol{margin:0 0 18px;padding-left:22px}
+.wx-article li{margin:6px 0;line-height:1.85}
+.wx-article code{background:#f2f5f9;color:#c0392b;padding:1px 5px;border-radius:4px;font-size:14px;
+  font-family:Consolas,"Courier New",monospace;word-break:break-all}
+.wx-article pre{margin:14px 0 20px;background:#f6f8fa;border:1px solid #e6ebf1;border-radius:8px;padding:12px 14px;overflow-x:auto}
+.wx-article pre code{background:none;color:#2d3748;padding:0;font-size:12.5px;line-height:1.7;white-space:pre-wrap;word-break:break-all}
+.wx-article table{width:100%;border-collapse:collapse;margin:16px 0 22px;font-size:12px;line-height:1.6;table-layout:auto}
+.wx-article th{background:#eef4fb;color:#274b7a;font-weight:700;text-align:left;padding:6px 4px;border-bottom:1px solid #dbe6f2;word-break:break-word}
+.wx-article td{padding:6px 4px;border-bottom:1px solid #edf1f6;color:#4a5a6d;word-break:break-word;vertical-align:top}
+.wx-article table.compact{font-size:11px;line-height:1.55}
+.wx-article tr:last-child td{border-bottom:none}
+.wx-article figure{margin:20px 0 24px}
+.wx-article img{display:block;width:100%;border-radius:8px;border:1px solid #e8edf3}
+.wx-article figcaption{margin-top:8px;font-size:13px;line-height:1.7;color:#8a94a6;text-align:center}
+.wx-article .divider{margin:30px 0;text-align:center;color:#c3ccd8;font-size:13px;letter-spacing:6px}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="meta">
+    <b>公众号排版稿</b> · 正文约 2521 字 · 配图 4 张<br>
+    标题：内网代码想给外网 AI 看？这个免费小工具，三步截成一张长图<br>
+    摘要：绿色单文件、不联网、不用装运行时，框选一下自动滚到底，拼成一张不叠字、不断行的长图。工具在外网用 AI 辅助写成，代码开源免费。<br>
+    封面：<code>docs/images/wechat-cover.png</code>（900×383）
+    <span class="hint">复制方法：从下面大标题开始，拖到文末全选 → Ctrl+C → 粘进公众号编辑器。图片会随选择一起复制，粘贴后逐张确认是否上传成功。</span>
+  </div>
+  <article class="wx-article">
+<h1>内网代码想给外网 AI 看？这个免费小工具，三步截成一张长图</h1>
+<blockquote>绿色单文件、不联网、不用装运行时，框选一下自动滚到底，拼成一张不叠字、不断行的长图。工具是在外网用 AI 辅助写的，大概一个下午，代码开源免费。</blockquote>
+<div class="divider">· · ·</div>
+<h2>一、它解决的是哪件麻烦事</h2>
+<p>起因很具体：内网机器上的代码，我看得见，但文本带不出来——不能复制粘贴到外网，也不能把文件传出去。可我又想让外网的 AI 帮我读它、解释它、改它。</p>
+<p>剩下唯一能带出去的形态就是<strong>截图</strong>。（什么内容可以带出去、什么不行，按公司规定来，这里不展开。）</p>
+<p>问题是一屏装不下一个文件。几百行代码要滚七八屏，逐屏截图再一张张发给 AI，它拿到的是一堆碎片，上下文全断。得拼成一张<strong>连续的长图</strong>才有用。</p>
+<p>同一件事还有别的版本：长网页存档、聊天记录留证、PDF 里的长表格、写完的文档发给不看电脑的人。只要内容超过一屏，需求都一样。</p>
+<div class="divider">· · ·</div>
+<h2>二、先说结论：为什么值得装</h2>
+<table class="compact"><thead><tr><th></th><th>普通截图</th><th>在线长图工具</th><th>常见滚动截图软件</th><th>ScrollShot</th></tr></thead><tbody><tr><td>超过一屏</td><td>不行</td><td>可以</td><td>可以</td><td>可以</td></tr><tr><td>要联网 / 上传内容</td><td>不用</td><td><strong>要，内容得出本机</strong></td><td>部分要登录</td><td><strong>全程离线</strong></td></tr><tr><td>要安装 / 管理员权限</td><td>不用</td><td>不用</td><td>大多要装</td><td><strong>不用，双击即用</strong></td></tr><tr><td>拼接质量</td><td>—</td><td>看服务</td><td>常有叠字、白带、重复段</td><td>像素级对齐，接缝可自检</td></tr><tr><td>价格</td><td>免费</td><td>限高 / 会员</td><td>限高 / 会员</td><td>免费，MIT</td></tr></tbody></table>
+<p>对我最关键的其实是<strong>第二行和第三行</strong>：内网机器装不了东西、也连不了外网，一个拷进去就能跑、又不会把内容传到任何服务器的单文件，几乎是唯一能落地的形态。</p>
+<p>顺便说清楚：这工具是<strong>在外网用 AI 辅助写的，从提需求到能出图大概一个下午</strong>。所以这篇不谈实现，只谈它好不好用、怎么用。想看踩坑和原理，仓库里另有一篇技术复盘。</p>
+<figure><img src="images/main-window.png" alt="ScrollShot 主窗口"><figcaption>图 1｜主窗口：一个「开始滚动截图」按钮就是全部入口，底部状态栏写着「就绪 · 离线运行」。</figcaption></figure>
+<div class="divider">· · ·</div>
+<h2>三、怎么拿到</h2>
+<p><strong>方式一：直接拿编译好的单文件</strong></p>
+<p>当前版本 <strong>v1.0.0</strong>，已经发布，直接下载：</p>
+<p><a href="https://github.com/zhaojzjx/scrollshot/releases/latest">https://github.com/zhaojzjx/scrollshot/releases/latest</a></p>
+<p>找到附件 <code>ScrollShot-v1.0.0-win-x64.zip</code>（约 61 MB），解压出 <code>ScrollShot.exe</code>（约 150 MB，自带 .NET 10 运行时）。拷到 U 盘带进内网机器，双击就能跑，不用安装、不用管理员权限、不用联网。</p>
+<blockquote>Releases 页面自动附带的 <code>Source code (zip)</code> 只是源码包，别下错了。</blockquote>
+<p><strong>方式二：自己编译</strong>（外网机器上，装了 .NET 10 SDK 就行）</p>
+<pre><code>git clone https://github.com/zhaojzjx/scrollshot.git
+cd scrollshot/src/ScrollShot &amp;&amp; dotnet publish -c Release</code></pre>
+<p>产物在 <code>bin/Release/net10.0-windows/win-x64/publish/ScrollShot.exe</code>。</p>
+<blockquote class="note">【可选配图：Releases 页面，圈出 zip 附件 —— 发布时自行截一张即可】</blockquote>
+<div class="divider">· · ·</div>
+<h2>四、三步用起来</h2>
+<p><strong>第 1 步：启动</strong></p>
+<p>双击 exe，主窗口出现，托盘多一个蓝底小相机图标。关掉主窗口不会退出，它会收进托盘常驻，随时可用；右键托盘图标可以打开窗口或彻底退出。想让 X 直接结束进程，在「设置 → 关闭主窗口时」改成「退出」。</p>
+<p><strong>第 2 步：按 <code>Ctrl+Alt+S</code>，框选区域</strong></p>
+<p>屏幕变暗进入框选状态，用鼠标拖出要截的窗口区域。<strong>只框内容区</strong>，别把标题栏、任务栏框进去——框多大，长图就多宽。</p>
+<p><strong>第 3 步：松开鼠标，开始</strong></p>
+<p>不需要再点确认。程序会自己把内容滚回顶部，然后一屏一屏地滚、截、拼。选区外出现一条胶囊控制条，显示当前进度（自动避开选区，不会被截进长图）。到底或按停止后，自动弹出预览窗，图片已经存好。</p>
+<table><thead><tr><th>操作</th><th>快捷键 / 方式</th></tr></thead><tbody><tr><td>开始截图</td><td><code>Ctrl+Alt+S</code>（或主窗口「开始滚动截图」、托盘右键）</td></tr><tr><td>取消框选</td><td><code>Esc</code> 或鼠标右键</td></tr><tr><td>中止采集</td><td><code>Esc</code> 或胶囊上的「■」</td></tr><tr><td>打开设置</td><td>主窗口「设置」/ 托盘「设置…」</td></tr><tr><td>打开保存目录</td><td>主窗口「打开保存目录」/「打开文件夹」</td></tr></tbody></table>
+<figure><img src="images/capsule.png" alt="采集中的胶囊控制条"><figcaption>图 2｜采集中选区外的胶囊条：进度、暂停、停止并保存、丢弃当前卷。</figcaption></figure>
+<div class="divider">· · ·</div>
+<h2>五、采集中途能干什么</h2>
+<p>胶囊会自动停在选区外的空位，采集期间固定不可拖动（避免拖进选区被截进长图）。<strong>采集时鼠标始终归你控制</strong>：程序不再每帧把光标拉来拉去，可以正常移开、点别的窗口；<strong>鼠标一移到胶囊上还会自动让行</strong>——暂停滚动，胶囊显示「已让行 · 移开鼠标继续」，可以从容点按钮，移开即恢复采集。上面三个按钮：</p>
+<ul><li><strong>⏸ 暂停 / 继续</strong>：临时要动一下鼠标、切个窗口时用</li><li><strong>■ 停止并保存</strong>：不想滚到底了，已经拼好的部分照样出图</li><li><strong>✕ 停止并丢弃当前卷</strong>：这一卷不要了，直接作废</li></ul>
+<p><code>Esc</code> 随时中止。这几个按钮看着不起眼，但真到截一个几百屏的页面时，能不能中途刹车，体验差别很大。</p>
+<div class="divider">· · ·</div>
+<h2>六、结果在哪，怎么交给 AI</h2>
+<p>默认存到 <code>图片\滚动截图</code>，文件名像 <code>ScrollShot_20261107_185500_01.png</code>，按时间加卷号排好，不会覆盖历史结果。</p>
+<ul><li>默认 <strong>PNG</strong>，设置里可切 <strong>JPG</strong>（默认质量 90），要发给 AI 时体积能小不少</li><li><strong>采集完自动把首张复制进剪贴板</strong>——这是我最常用的路径：截完直接 <code>Ctrl+V</code> 粘进 AI 对话框，一步都不用多走</li><li>预览窗里可以缩放查看（适应窗口宽度 / 100% / 适应窗口），检查接缝处的文字有没有重影</li><li>预览窗还有「复制当前张」「复制全部」「打开文件夹」「丢弃结果」四个按钮</li></ul>
+<p>主窗口的结果区也留了「预览」「复制首张」「打开文件夹」，采完关了预览窗也能找回来。</p>
+<figure><img src="images/preview-window.png" alt="采集完成后的预览窗"><figcaption>图 3｜预览窗：右侧卷列表列出自动分出的多卷，上方一排按钮可直接复制当前张、复制全部、打开文件夹。</figcaption></figure>
+<blockquote class="note">【可选配图：把长图粘进 AI 对话框的效果 —— 发布时补一张】</blockquote>
+<div class="divider">· · ·</div>
+<h2>七、内容太长会怎样：自动分卷</h2>
+<p>单张 PNG 有高度上限，几万像素也扛不住内存。所以超过 <strong>6000 像素</strong>就自动切一卷，存一张，继续截。</p>
+<p>有两个细节是为"给 AI 看"做的：</p>
+<ul><li><strong>切点尽量落在行间空白处</strong>，不会把一行代码拦腰切断，上下两张各剩半个字</li><li><strong>卷与卷之间保留 100 像素重叠</strong>，翻看时上下文是连续的，不会突然断掉</li></ul>
+<p>给 AI 时按顺序把几张图一起传、并在提示里说明"这是同一份代码的连续第 1/2/3 段"，它就能当一份完整材料读。</p>
+<p>准不准不用信我：仓库里带了 <code>tools/verify_stitch.py</code>，采完跑一下，卷间衔接的平均灰度差应该是 <code>0.000</code>（逐像素一致），不是 0 就说明接断了。依赖安装和命令见仓库 README 的「自检」一节。</p>
+<div class="divider">· · ·</div>
+<h2>八、几个常用设置</h2>
+<p>设置窗口分「常规 / 采集 / 拼接 / 输出 / 高级」五组，改动即时保存、不用重启程序（只有快捷键要额外点一下「重新注册快捷键」）。多数人默认值就够，只列几个真会用到的：</p>
+<table><thead><tr><th>想解决什么</th><th>改哪里</th><th>建议</th></tr></thead><tbody><tr><td>快捷键跟别的软件冲突</td><td>常规 → 启动快捷键</td><td>改完点「重新注册快捷键」</td></tr><tr><td>担心滚动太快漏内容</td><td>采集 → 滚动步长</td><td>新版已自动限制单帧不超过选区 55%，一般无需调整；特殊应用可调到 0.5–0.6</td></tr><tr><td>某应用滚轮没反应</td><td>采集 → 滚动方式</td><td>换成 <code>PageDown</code></td></tr><tr><td>滚动后画面还没画完</td><td>采集 → 滚动后等待</td><td>默认 300ms，调到 500</td></tr><tr><td>需要摆好窗口再开始</td><td>采集 → 开始前倒计时</td><td>默认关闭</td></tr><tr><td>想控制单张大小</td><td>拼接 → 单张最大高度</td><td>默认 6000px</td></tr><tr><td>想换保存位置 / 格式</td><td>输出 → 保存位置 / 默认格式</td><td>也可直接改 <code>config.json</code></td></tr><tr><td>不想自动占剪贴板</td><td>输出 → 自动复制</td><td>关掉即可</td></tr></tbody></table>
+<figure><img src="images/settings-window.png" alt="设置窗口"><figcaption>图 4｜设置窗口：左侧五组，右侧是快捷键等常用项，改动即时保存。</figcaption></figure>
+<p>配置文件在 <code>%AppData%\ScrollShot\config.json</code>，日志也在同目录，出问题可以直接翻。</p>
+<div class="divider">· · ·</div>
+<h2>九、哪些情况不适用</h2>
+<p>推荐也得说清楚边界，免得白折腾：</p>
+<ul><li><strong>只支持纵向滚动</strong>，横向滚动截图没做</li><li>依赖 <code>Ctrl+Home</code> 把内容滚回顶部；不响应该快捷键的应用，可能从中间开始截</li><li>默认用 BitBlt 截屏，<strong>GPU 直绘窗口、部分远程桌面场景可能截到黑屏</strong>；设置里的 WGC 选项目前是预留，选了会自动回退</li><li><strong>混合 DPI 的多显示器</strong>（比如一台 100%、一台 200%）：按主屏缩放换算，跨屏框选可能有偏差</li><li>不支持需要提权的窗口（UAC 安全桌面）</li></ul>
+<div class="divider">· · ·</div>
+<h2>十、为什么敢推荐</h2>
+<p>不是因为它功能多，恰恰是因为它<strong>只做一件事，而且能验证</strong>：</p>
+<ol><li><strong>离线、零依赖、零上传</strong>。整个过程不联网，截图不经过任何服务器——要给 AI 看的内容，先得保证没在别处留过副本。</li><li><strong>拼接质量可自检</strong>。叠字、白带、重复段落这类错，肉眼要滚到很下面才发现；工具给了逐像素验证的办法。</li><li><strong>代码全公开，MIT</strong>。想改、想审、想自己编译都行，不存在"免费版藏了什么"的问题。</li><li>一个下午用 AI 写出来的小东西，没打算做成大产品，也就没有账号、会员、广告这些负担。</li></ol>
+<p>如果你也在内网里对着带不出来的代码发愁，或者只是想找个不用登录、不用联网、双击就能用的长图工具，可以试试。</p>
+<div class="divider">· · ·</div>
+<ul><li><strong>下载</strong>：<a href="https://github.com/zhaojzjx/scrollshot/releases/latest">https://github.com/zhaojzjx/scrollshot/releases/latest</a></li><li><strong>仓库</strong>：<a href="https://github.com/zhaojzjx/scrollshot">https://github.com/zhaojzjx/scrollshot</a></li><li><strong>技术复盘</strong>：仓库内 <code>docs/tech-notes.md</code></li><li><strong>协议</strong>：MIT，免费可商用。</li></ul>
+<p><em>工具与本文均由 AI 辅助完成，从提需求到能出图约一个下午。如果对你有帮助，欢迎转发，或去仓库点个 star。</em></p>
+  </article>
+</div>
+</body>
+</html>

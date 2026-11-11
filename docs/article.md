@@ -44,7 +44,7 @@
 
 <https://github.com/zhaojzjx/scrollshot/releases/latest>
 
-找到附件 `ScrollShot-v1.0.0-win-x64.zip`（约 61 MB），解压出 `ScrollShot.exe`（约 149 MB，自带 .NET 10 运行时）。拷到 U 盘带进内网机器，双击就能跑，不用安装、不用管理员权限、不用联网。
+找到附件 `ScrollShot-v1.0.0-win-x64.zip`（约 61 MB），解压出 `ScrollShot.exe`（约 150 MB，自带 .NET 10 运行时）。拷到 U 盘带进内网机器，双击就能跑，不用安装、不用管理员权限、不用联网。
 
 > Releases 页面自动附带的 `Source code (zip)` 只是源码包，别下错了。
 
