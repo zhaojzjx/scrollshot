@@ -27,3 +27,6 @@ __pycache__/
 Thumbs.db
 .DS_Store
 desktop.ini
+
+# 视频素材与成片（体积大，不入库）
+_video/

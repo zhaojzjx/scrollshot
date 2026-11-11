@@ -1,7 +1,8 @@
-"""把 docs/video-script.md 转成便于阅读/打印的 HTML。
+"""把 docs 下的 Markdown 转成便于阅读/打印的 HTML。
 
-用法：python tools/md2script.py
-输出：docs/video-script.html
+用法：
+  python tools/md2script.py                  # 拍片脚本 → docs/video-script.html
+  python tools/md2script.py --prompter       # 旁白提词卡 → docs/narration.html（大字版）
 
 只覆盖本文用到的 Markdown 子集：标题、表格、列表（含任务项）、引用块、
 代码块、分割线、段落，以及行内的 **粗体**、`代码`、[链接](url)。
@@ -11,11 +12,14 @@ from __future__ import annotations
 
 import html
 import re
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-SRC = ROOT / "docs" / "video-script.md"
-OUT = ROOT / "docs" / "video-script.html"
+
+PROMPTER = "--prompter" in sys.argv
+SRC = ROOT / "docs" / ("narration.md" if PROMPTER else "video-script.md")
+OUT = ROOT / "docs" / ("narration.html" if PROMPTER else "video-script.html")
 
 
 def inline(text: str) -> str:
@@ -173,12 +177,27 @@ a{color:var(--blue);word-break:break-all}
 @media print{body{background:#fff}.wrap{box-shadow:none;padding:0}pre{background:#f4f6f9;color:#1c2530}}
 """
 
+PROMPTER_CSS = """
+body{font:28px/1.9 "Microsoft YaHei","PingFang SC",sans-serif}
+.wrap{max-width:1160px;padding:44px 56px 90px}
+h1{font-size:30px;margin:0 0 10px}
+h2{font-size:20px;margin:62px 0 16px;padding:9px 16px;background:#e8f0fb;color:#1b4a86;
+ border:0;border-radius:8px;letter-spacing:.06em;display:inline-block}
+p{font-size:31px;line-height:1.85;margin:10px 0;letter-spacing:.01em;color:#16202c}
+blockquote{font-size:20px;line-height:1.7}
+hr{border:0;border-top:1px dashed #d6e0ec;margin:34px 0 0}
+@media print{body{font-size:20pt}h2{page-break-after:avoid}p{page-break-inside:avoid}}
+"""
+
+CSS = CSS + (PROMPTER_CSS if PROMPTER else "")
+TITLE = "旁白提词卡" if PROMPTER else "ScrollShot 演示视频 · 录屏执行脚本"
+
 page = f"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ScrollShot 演示视频 · 拍摄脚本与旁白</title>
+<title>{TITLE}</title>
 <style>{CSS}</style>
 </head>
 <body>
