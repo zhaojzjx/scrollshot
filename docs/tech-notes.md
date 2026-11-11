@@ -388,7 +388,11 @@ if (h <= _maxHeight) return h;   // 没超上限，整卷保留，不要在中�
 
 现在托盘图标来自程序自带的 `Assets/app.ico`（9 帧 BMP，16→256），用 `CreateIconFromResourceEx` 从内嵌资源直接生成 `HICON`；`.ico` 同时通过 `<ApplicationIcon>` 写进 apphost 的 PE 资源，exe 在资源管理器里也是这枚图标。
 
-图标图稿换过一次：用户给的是一张浅蓝窗口插画（白底、带 AI 生成水印）。处理时按「与画布边界连通的近白区域」做 flood fill 抠掉白底——窗口内部同样很浅，但被蓝色边框包住、不与边界连通，所以能完整保留；右下角水印先整块涂白再一起被 flood 清掉。原图是细腻浅色渐变，直接缩到 16×16 会糊成一片浅蓝，所以 ico 里 16/20/24/32 换成同设计语言的简化稿（蓝底 + 白窗口 + 深蓝双向箭头），40 及以上保持原画。手工拼装 ico 时目录项必须正好 16 字节（8 字节属性 + `dwBytesInRes` + `dwImageOffset`），多写 2 字节会让整张目录错位、图标全废。另外补了三件事：`NIM_ADD` 用完整版 `NOTIFYICONDATAW`（976 字节，失败则退到 296 字节的 V1 尺寸）、监听 `TaskbarCreated` 让 Explorer 重启后自动补注册、首次收进托盘弹一次气泡说明图标可能被 Win11 收进 `^` 溢出区。
+图标最终是重新绘制的一版：蓝色渐变圆角底板 + 白色代码窗口，右下角一枚橙色圆徽标，里面是白色小相机（取景器凸起、机身、同心圆镜头、快门小点）。生成脚本 `tools/make_icon.py`（Pillow + numpy），一次产出 `Assets/app.ico` 的 9 帧 BMP、`docs/images/app-icon-512.png` 透明底纯图和 `docs/images/app-icon.png` 尺寸对照预览，改配色或换徽标只改脚本重跑即可。
+
+**小尺寸不能靠缩小**：早先试过直接把一张浅色渐变插画（flood fill 抠白底、涂掉 AI 生成水印）缩到 16×16，结果糊成一片浅蓝，细节全丢。现在 24px 以上从 1024 超采样画布用 LANCZOS 缩放；16/20px 则**直接按整像素网格绘制**——不缩放就没有圆角抗锯齿留下的半透明脏边，3px 的镜头圆也不会被缩成十字。手工拼装 ico 时目录项必须正好 16 字节（8 字节属性 + `dwBytesInRes` + `dwImageOffset`），多写 2 字节会让整张目录错位、图标全废；Pillow 单帧 ico 的 `wPlanes` 写 0，ICO 规范要求 1，拼装时顺手改正。
+
+托盘侧另补三件事：`NIM_ADD` 用完整版 `NOTIFYICONDATAW`（976 字节，失败则退到 296 字节的 V1 尺寸）、监听 `TaskbarCreated` 让 Explorer 重启后自动补注册、首次收进托盘弹一次气泡说明图标可能被 Win11 收进 `^` 溢出区。
 
 顺带修了退出：托盘宿主本身也是一个 `Window` 且先 `Show()`，WPF 会把它当作 `MainWindow`。不显式指定 `MainWindow` + `ShutdownMode = OnMainWindowClose` 的话，即使用户在设置里选了「关闭主窗口时 → 退出」，进程也会因为托盘窗口还开着而赖着不走。
 
