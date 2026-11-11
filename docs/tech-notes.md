@@ -386,7 +386,9 @@ if (h <= _maxHeight) return h;   // 没超上限，整卷保留，不要在中�
 
 第二个错误叠加在上面：加载系统预定义图标时把 `hInst` 传成了 `GetModuleHandle(null)`（exe 自己的模块）。`IDI_APPLICATION` 只有 `hInst = NULL` 时才代表系统库存图标；传了 exe 句柄，Windows 就去 exe 资源里找编号 32512，当然找不到，`hIcon = 0`。就算注册成功也没图标可画。
 
-现在托盘图标来自程序自带的 `Assets/app.ico`（多尺寸 BMP 帧），用 `CreateIconFromResourceEx` 从内嵌资源直接生成 `HICON`；`.ico` 同时通过 `<ApplicationIcon>` 写进 apphost 的 PE 资源，exe 在资源管理器里也是这枚图标。另外补了三件事：`NIM_ADD` 用完整版 `NOTIFYICONDATAW`（976 字节，失败则退到 296 字节的 V1 尺寸）、监听 `TaskbarCreated` 让 Explorer 重启后自动补注册、首次收进托盘弹一次气泡说明图标可能被 Win11 收进 `^` 溢出区。
+现在托盘图标来自程序自带的 `Assets/app.ico`（9 帧 BMP，16→256），用 `CreateIconFromResourceEx` 从内嵌资源直接生成 `HICON`；`.ico` 同时通过 `<ApplicationIcon>` 写进 apphost 的 PE 资源，exe 在资源管理器里也是这枚图标。
+
+图标图稿换过一次：用户给的是一张浅蓝窗口插画（白底、带 AI 生成水印）。处理时按「与画布边界连通的近白区域」做 flood fill 抠掉白底——窗口内部同样很浅，但被蓝色边框包住、不与边界连通，所以能完整保留；右下角水印先整块涂白再一起被 flood 清掉。原图是细腻浅色渐变，直接缩到 16×16 会糊成一片浅蓝，所以 ico 里 16/20/24/32 换成同设计语言的简化稿（蓝底 + 白窗口 + 深蓝双向箭头），40 及以上保持原画。手工拼装 ico 时目录项必须正好 16 字节（8 字节属性 + `dwBytesInRes` + `dwImageOffset`），多写 2 字节会让整张目录错位、图标全废。另外补了三件事：`NIM_ADD` 用完整版 `NOTIFYICONDATAW`（976 字节，失败则退到 296 字节的 V1 尺寸）、监听 `TaskbarCreated` 让 Explorer 重启后自动补注册、首次收进托盘弹一次气泡说明图标可能被 Win11 收进 `^` 溢出区。
 
 顺带修了退出：托盘宿主本身也是一个 `Window` 且先 `Show()`，WPF 会把它当作 `MainWindow`。不显式指定 `MainWindow` + `ShutdownMode = OnMainWindowClose` 的话，即使用户在设置里选了「关闭主窗口时 → 退出」，进程也会因为托盘窗口还开着而赖着不走。
 
